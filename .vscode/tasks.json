@@ -9,7 +9,9 @@
                 "-g", // Cờ này dùng để debug, có thể giữ lại
                 // Liệt kê tường minh từng file .cpp trong thư mục src
                 "src/main.cpp",
-                "src/CinemaSystem.cpp",
+                "src/UIManager.cpp",
+                "src/MovieManager.cpp",
+                "src/BookingManager.cpp",
                 "src/utils.cpp",
                 "-o", // Chỉ định file output
                 "main.exe" // Tên file thực thi sẽ được tạo ra

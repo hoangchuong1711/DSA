@@ -38,35 +38,7 @@ int earliestShowMinutes(const Movie &m) {
     return earliest;
 }
 
-void swapMovie(Movie &a, Movie &b) {
-    Movie tmp = a;
-    a = b;
-    b = tmp;
-}
 
-void quickSortMovies(Movie movies[], int l, int r, int mode) {
-    if (l >= r) return;
-    int i = l, j = r;
-    Movie pivot = movies[(l + r) / 2];
-
-    auto cmpLeft = [&](const Movie &x, const Movie &y)->bool {
-        if (mode == 0) return earliestShowMinutes(x) < earliestShowMinutes(y);
-        if (mode == 1) return totalFreeSeats(x) > totalFreeSeats(y);
-        if (mode == 2) return x.rating > y.rating;
-        return earliestShowMinutes(x) < earliestShowMinutes(y);
-    };
-
-    while (i <= j) {
-        while (cmpLeft(movies[i], pivot)) i++;
-        while (cmpLeft(pivot, movies[j])) j--;
-        if (i <= j) {
-            swapMovie(movies[i], movies[j]);
-            i++; j--;
-        }
-    }
-    if (l < j) quickSortMovies(movies, l, j, mode);
-    if (i < r) quickSortMovies(movies, i, r, mode);
-}
 
 bool parseSeatCode(const std::string &id_orig, int &r, int &c, const Show &sh) {
     if (id_orig.size() < 2) return false;

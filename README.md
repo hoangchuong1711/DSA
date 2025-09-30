@@ -6,6 +6,6 @@
 Mở terminal trong thư mục dự án, sau đó chạy:
 
 ```bash
-Build: g++ src/*.cpp -o main.exe
+Build: g++ src/main.cpp src/UIManager.cpp src/MovieManager.cpp src/BookingManager.cpp src/utils.cpp -o main.exe
 
 Run: ./main.exe

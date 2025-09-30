@@ -1,46 +1,38 @@
-// CinemaSystem.cpp
-#include "CinemaSystem.h"
-#include "utils.h" // Sử dụng các hàm tiện ích
+#include "UIManager.h"
+#include "MovieManager.h"
+#include "utils.h"
 #include <iostream>
-#include <iomanip>
 
 using namespace std;
 
+void UIManager::run() {
+    while (true) {
+        displayMainMenu();
+        int choice;
+        std::cin >> choice;
+        if (choice == 0) {
+            std::cout << "Thoat chuong trinh.\n";
+            break;
+        } else if (choice == 1) {
+            flowListAndBook();
+        } else if (choice == 2) {
+            // Lấy mảng phim từ movieManager để truyền cho bookingManager
+            searchUserAndAction();
+        } else {
+            std::cout << "Lua chon khong hop le. Thu lai.\n";
+        }
+    }
+}
 
+void UIManager::displayMainMenu() {
+    cout << "\n===== MENU RAP CHIEU =====\n";
+    cout << "1. Danh sach phim (sap xep mac dinh theo gio)\n";
+    cout << "2. Tim kiem nguoi dat (ten/CCCD)\n";
+    cout << "0. Thoat\n";
+    cout << "Chon: ";
+}
 
-// ===== Copy tất cả các hàm thành viên còn lại của CinemaSystem vào đây =====
-// NHỚ: Thêm "CinemaSystem::" vào trước tên mỗi hàm. Ví dụ:
-// void displayMainMenu()  =>  void CinemaSystem::displayMainMenu()
-
-
-
-// ... copy và sửa tất cả các hàm khác: listMoviesDefault, listMoviesSortedMenu, ...
-// ... bookMultipleSeats, cancelSeat, searchUserAndAction, postSearchActions, flowListAndBook
-// (Nội dung các hàm giữ nguyên, chỉ thêm CinemaSystem::)
-
-// Ví dụ một hàm được chuyển đổi:
-
-
-// (Bạn hãy tự copy và sửa các hàm còn lại tương tự nhé)
-
-//
-// Dưới đây là phần còn lại đã được chuyển đổi sẵn
-//
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void CinemaSystem::searchUserAndAction() {
+void UIManager::searchUserAndAction() {
     cin.ignore();
     cout << "Tim theo (1) Ten, (2) CCCD. Chon: ";
     int mode; cin >> mode;
@@ -102,7 +94,7 @@ void CinemaSystem::searchUserAndAction() {
     }
 }
 
-void CinemaSystem::postSearchActions() {
+void UIManager::postSearchActions() {
     cout << "\nSau khi xem thong tin, ban muon:\n";
     cout << "1. Dat them ghe (cho nguoi da ton tai - nhap thong tin se su dung CCCD/ten da tim)\n";
     cout << "2. Huy ghe\n";
@@ -125,11 +117,11 @@ void CinemaSystem::postSearchActions() {
             }
         if (foundName == "") { cout << "Khong tim thay user voi CCCD nay.\n"; return; }
         cout << "Chon phim de dat them (se hien danh sach):\n";
-        listMoviesWithMode(0);
+        movieManager.listMoviesWithMode(0);
         cout << "Nhap so thu tu phim: "; int pm; cin >> pm;
-        Movie* mptr = chooseMovieByIndex(pm);
+        Movie* mptr = movieManager.chooseMovieByIndex(pm);
         if (!mptr) { cout << "Phim khong hop le.\n"; return; }
-        int si = chooseShowForMovie(*mptr);
+        int si = bookingManager.chooseShowForMovie(*mptr);
         if (si < 0) { cout << "Suat khong hop le.\n"; return; }
         Show &sh = mptr->shows[si];
         cout << "Nhap so ghe muon dat them: "; int nn; cin >> nn;
@@ -212,32 +204,32 @@ void CinemaSystem::postSearchActions() {
     }
 }
 
-void CinemaSystem::flowListAndBook() {
-    listMoviesDefault();
+void UIManager::flowListAndBook() {
+    movieManager.listMoviesDefault();
     cout << "\nBan muon sap xep khac khong? (1 = Co, 0 = Khong): ";
     int ans; cin >> ans;
     if (ans == 1) {
-        listMoviesSortedMenu();
+        movieManager.listMoviesSortedMenu();
         int mode; cin >> mode;
         if (mode >=1 && mode <=3) {
-            listMoviesWithMode(mode-1);
+            movieManager.listMoviesWithMode(mode-1);
         } else {
             cout << "Lua chon khong hop le, tiep tuc voi mac dinh.\n";
-            listMoviesDefault();
+            movieManager.listMoviesDefault();
         }
     }
     cout << "\nChon phim de xem va dat (nhap so thu tu phim): ";
     int idx; cin >> idx;
-    Movie* mptr = chooseMovieByIndex(idx);
+    Movie* mptr = movieManager.chooseMovieByIndex(idx);
     if (!mptr) { cout << "Phim khong hop le.\n"; return; }
-    int si = chooseShowForMovie(*mptr);
+    int si = bookingManager.chooseShowForMovie(*mptr);
     if (si < 0) { cout << "Suat khong hop le.\n"; return; }
     Show &sh = mptr->shows[si];
-    displaySeats(sh);
+    bookingManager.displaySeats(sh);
     cout << "\nBan muon dat ghe cho suat nay? (1 = Co, 0 = Khong): ";
     int bok; cin >> bok;
     if (bok == 1) {
-        bookMultipleSeats(sh);
+        bookingManager.bookMultipleSeats(sh);
     } else {
         cout << "Khong dat. Quay lai menu.\n";
     }
