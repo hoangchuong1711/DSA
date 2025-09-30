@@ -1,0 +1,22 @@
+# Bỏ file thực thi trên Windows
+*.exe
+
+# Bỏ file thực thi trên Linux/macOS
+*.out
+*.out.*
+
+# Bỏ file đối tượng khi biên dịch
+*.o
+*.obj
+
+# Bỏ file log
+*.log
+
+# Bỏ file tạm thời của editor/IDE
+.vscode/
+*.swp
+*.tmp
+
+# Bỏ file của hệ điều hành
+Thumbs.db
+.DS_Store
