@@ -1,5 +1,6 @@
 #pragma once
 #include "models.h"
+#include "utils.h"
 
 class MovieManager {
 private:

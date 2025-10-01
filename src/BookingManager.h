@@ -1,5 +1,6 @@
 #pragma once
 #include "models.h"
+#include "IndexManager.h"
 
 class BookingManager {
 public:

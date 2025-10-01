@@ -11,51 +11,61 @@ MovieManager::MovieManager() {
 }
 
 void MovieManager::initMovies() {
-    // ... (copy a nguyên văn phần thân hàm initMovies từ file gốc)
-        // Add 5 sample movies (you can edit / add more later easily)
-        // Movie 1
-        movies[0].title = "Avengers";
-        movies[0].rating = 4.6f;
-        movies[0].showCount = 2;
-        movies[0].shows[0] = Show("09:00");
-        movies[0].shows[1] = Show("14:00");
+    // Extended sample data with multiple shows across the day
+    movies[0].title = "Avengers";
+    movies[0].rating = 4.6f;
+    movies[0].showCount = 4;
+    movies[0].shows[0] = Show("08:00");
+    movies[0].shows[1] = Show("10:30");
+    movies[0].shows[2] = Show("14:00");
+    movies[0].shows[3] = Show("20:45");
 
-        // Movie 2
-        movies[1].title = "Inception";
-        movies[1].rating = 4.8f;
-        movies[1].showCount = 2;
-        movies[1].shows[0] = Show("10:00");
-        movies[1].shows[1] = Show("16:00");
+    movies[1].title = "Inception";
+    movies[1].rating = 4.8f;
+    movies[1].showCount = 3;
+    movies[1].shows[0] = Show("09:15");
+    movies[1].shows[1] = Show("13:45");
+    movies[1].shows[2] = Show("18:30");
 
-        // Movie 3
-        movies[2].title = "Interstellar";
-        movies[2].rating = 4.7f;
-        movies[2].showCount = 1;
-        movies[2].shows[0] = Show("12:30");
+    movies[2].title = "Interstellar";
+    movies[2].rating = 4.7f;
+    movies[2].showCount = 3;
+    movies[2].shows[0] = Show("11:00");
+    movies[2].shows[1] = Show("15:30");
+    movies[2].shows[2] = Show("21:00");
 
-        // Movie 4
-        movies[3].title = "Joker";
-        movies[3].rating = 4.3f;
-        movies[3].showCount = 2;
-        movies[3].shows[0] = Show("11:00");
-        movies[3].shows[1] = Show("19:00");
+    movies[3].title = "Joker";
+    movies[3].rating = 4.3f;
+    movies[3].showCount = 2;
+    movies[3].shows[0] = Show("12:00");
+    movies[3].shows[1] = Show("19:00");
 
-        // Movie 5
-        movies[4].title = "The Matrix";
-        movies[4].rating = 4.5f;
-        movies[4].showCount = 1;
-        movies[4].shows[0] = Show("18:00");
+    movies[4].title = "The Matrix";
+    movies[4].rating = 4.5f;
+    movies[4].showCount = 2;
+    movies[4].shows[0] = Show("16:45");
+    movies[4].shows[1] = Show("22:15");
 
-        movieCount = 5;
+    movieCount = 5;
 }
 
 void MovieManager::listMoviesDefault() {
     quickSortMovies(movies, 0, movieCount-1, 0); // sort by earliest show time asc
     cout << "\n===== DANH SACH PHIM (theo gio chieu) =====\n";
+    cout << "Goi y: nhap '?' de tim phim theo ten, '/' de sap xep.\n";
     for (int i=0;i<movieCount;i++) {
+        bool hasFuture = false;
+        int earliestIdx = -1;
+        int earliest = 24*60 + 1;
+        for (int s=0;s<movies[i].showCount;s++) {
+            int mm = timeToMinutes(movies[i].shows[s].time);
+            int now = 0; // placeholder, UI filters by time; here we just show all; detailed filter in UI
+            if (mm >= now) { hasFuture = true; if (mm < earliest) { earliest = mm; earliestIdx = s; } }
+        }
+        if (!hasFuture) continue;
         cout << i+1 << ". " << movies[i].title
             << "  | Rating: " << fixed << setprecision(1) << movies[i].rating
-            << "  | Earliest: " << (movies[i].showCount>0 ? movies[i].shows[0].time : "N/A")
+            << "  | Earliest: " << (earliestIdx>=0 ? movies[i].shows[earliestIdx].time : "N/A")
             << "  | Free seats total: " << totalFreeSeats(movies[i])
             << "\n";
     }

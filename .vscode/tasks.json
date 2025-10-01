@@ -1,26 +1,27 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "build project",
-            "type": "shell",
-            "command": "g++",
-            "args": [
-                "-g", // Cờ này dùng để debug, có thể giữ lại
-                // Liệt kê tường minh từng file .cpp trong thư mục src
-                "src/main.cpp",
-                "src/UIManager.cpp",
-                "src/MovieManager.cpp",
-                "src/BookingManager.cpp",
-                "src/utils.cpp",
-                "-o", // Chỉ định file output
-                "main.exe" // Tên file thực thi sẽ được tạo ra
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": ["$gcc"]
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build project",
+      "type": "shell",
+      "command": "g++",
+      "args": [
+        "-g", // Cờ này dùng để debug, có thể giữ lại
+        // Liệt kê tường minh từng file .cpp trong thư mục src
+        "src/main.cpp",
+        "src/UIManager.cpp",
+        "src/MovieManager.cpp",
+        "src/BookingManager.cpp",
+        "src/IndexManager.cpp",
+        "src/utils.cpp",
+        "-o", // Chỉ định file output
+        "main.exe" // Tên file thực thi sẽ được tạo ra
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
 }

@@ -7,7 +7,7 @@ using namespace std;
 
 int BookingManager::chooseShowForMovie(Movie &m) {
     if (m.showCount == 0) return -1;
-    cout << "\nSu at chieu cua phim: " << m.title << "\n";
+    cout << "\nSuat chieu cua phim: " << m.title << "\n";
     for (int i=0;i<m.showCount;i++) {
         cout << i+1 << ". " << m.shows[i].time << "  | Free seats: ";
         int freeCnt = 0;
@@ -50,7 +50,8 @@ void BookingManager::bookMultipleSeats(Show &sh) {
     if (isFull(sh)) { cout << "Het ghe trong suat nay!\n"; return; }
     cout << "Nhap so luong ghe muon dat: ";
     int n; cin >> n;
-    if (n <= 0 || n > (sh.rows * sh.cols)) { cout << "So luong khong hop le!\n"; return; }
+    int freeSeats = countFreeSeats(sh);
+    if (n <= 0 || n > freeSeats) { cout << "So luong khong hop le! Con trong: " << freeSeats << "\n"; return; }
     cin.ignore();
     string line;
     cout << "Nhap danh sach ma ghe cach nhau boi dau cach (vd: A1 A2 A3):\n";
@@ -89,21 +90,55 @@ void BookingManager::bookMultipleSeats(Show &sh) {
             }
         }
     }
-
-    cin.ignore();
+  
     User u;
     cout << "Nhap ten nguoi dat: ";
     getline(cin, u.name);
+    while (!isValidName(u.name)) {
+        cout << "Ten khong hop le. Nhap lai: ";
+        getline(cin, u.name);
+    }
     cout << "Nhap CCCD: ";
     getline(cin, u.cccd);
+    while (!isValidCCCD(u.cccd)) {
+        cout << "CCCD khong hop le. Nhap lai: ";
+        getline(cin, u.cccd);
+    }
 
+    // Provisional seats
+    int seatRows[MAX_TOKENS];
+    int seatCols[MAX_TOKENS];
+    for (int i=0;i<desiredCount;i++) { parseSeatCode(desired[i], seatRows[i], seatCols[i], sh); }
+
+    // Invoice
+    const int pricePerSeat = 75000;
+    int total = pricePerSeat * desiredCount;
+    cout << "\n===== HOA DON =====\n";
+    cout << "Ten: " << u.name << "\n";
+    cout << "CCCD: " << u.cccd << "\n";
+    cout << "Suat: " << sh.time << "\n";
+    cout << "Ghe: ";
     for (int i=0;i<desiredCount;i++) {
-        int r,c;
-        parseSeatCode(desired[i], r, c, sh);
+        char rc = 'A' + seatRows[i];
+        cout << rc << seatCols[i]+1;
+        if (i+1<desiredCount) cout << ", ";
+    }
+    cout << "\nTong tien: " << total << " VND\n";
+    cout << "Xac nhan thanh toan? (1=Co, 0=Khong): ";
+    int confirm; cin >> confirm;
+    if (confirm != 1) {
+        cout << "Da huy dat ve, quay lai chon ghe.\n";
+        return;
+    }
+
+    // Commit
+    for (int i=0;i<desiredCount;i++) {
+        int r = seatRows[i];
+        int c = seatCols[i];
         sh.seats[r][c].booked = true;
         sh.seats[r][c].user = u;
     }
-    cout << "Dat thanh cong " << desiredCount << " ghe.\n";
+    cout << "Da xac nhan thanh toan. Chuc ban xem phim vui ve!\n";
 }
 
 void BookingManager::cancelSeat(Show &sh) {

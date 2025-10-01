@@ -2,6 +2,8 @@
 #include "utils.h"
 #include <cctype>   // Cho isdigit, toupper
 #include <cstring>  // Cho isspace
+#include <string>
+#include <ctime>
 
 // Triển khai các hàm đã được khai báo trong utils.h
 
@@ -74,4 +76,39 @@ int splitTokens(const std::string &line, std::string tokens[], int maxTokens) {
     }
     if (!cur.empty() && cnt < maxTokens) tokens[cnt++] = cur;
     return cnt;
+}
+
+static bool isAlphabetOrSpace(char ch) {
+    return std::isalpha(static_cast<unsigned char>(ch)) || std::isspace(static_cast<unsigned char>(ch));
+}
+
+bool isValidName(const std::string &name) {
+    if (name.empty()) return false;
+    for (size_t i=0;i<name.size();i++) {
+        if (!isAlphabetOrSpace(name[i])) return false;
+    }
+    return true;
+}
+
+bool isValidCCCD(const std::string &cccd) {
+    if (cccd.empty()) return false;
+    for (size_t i=0;i<cccd.size();i++) {
+        if (!std::isdigit(static_cast<unsigned char>(cccd[i]))) return false;
+    }
+    return cccd.size() >= 6; 
+}
+
+int countFreeSeats(const Show &sh) {
+    int freeCnt = 0;
+    for (int r=0;r<sh.rows;r++)
+        for (int c=0;c<sh.cols;c++)
+            if (!sh.seats[r][c].booked) freeCnt++;
+    return freeCnt;
+}
+
+int getCurrentMinutesLocal() {
+    std::time_t t = std::time(nullptr);
+    std::tm *lt = std::localtime(&t);
+    if (!lt) return 0;
+    return lt->tm_hour * 60 + lt->tm_min;
 }

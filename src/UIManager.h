@@ -1,13 +1,15 @@
 #pragma once
 #include "MovieManager.h"
 #include "BookingManager.h"
+#include <string>
 
 class UIManager {
 private:
     MovieManager movieManager;
-    Movie movies[MAX_MOVIES];
-    int movieCount;
     BookingManager bookingManager;
+    // Context from last successful search result
+    std::string contextName;
+    std::string contextCCCD;
 
 public:
     void run(); // Hàm chính để chạy vòng lặp chương trình
