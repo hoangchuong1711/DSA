@@ -18,14 +18,14 @@ void MovieManager::initMovies() {
     movies[0].shows[0] = Show("08:00");
     movies[0].shows[1] = Show("10:30");
     movies[0].shows[2] = Show("14:00");
-    movies[0].shows[3] = Show("20:45");
+    movies[0].shows[3] = Show("23:45");
 
     movies[1].title = "Inception";
     movies[1].rating = 4.8f;
     movies[1].showCount = 3;
     movies[1].shows[0] = Show("09:15");
     movies[1].shows[1] = Show("13:45");
-    movies[1].shows[2] = Show("18:30");
+    movies[1].shows[2] = Show("11:30");
 
     movies[2].title = "Interstellar";
     movies[2].rating = 4.7f;

@@ -69,16 +69,30 @@ void UIManager::searchUserAndAction() {
     if (rc == 1) {
         Position m = results[0];
         Show &sh = movies[m.movieIndex].shows[m.showIndex];
+        string cccdTarget = sh.seats[m.rowIndex][m.colIndex].user.cccd;
+        string nameTarget = sh.seats[m.rowIndex][m.colIndex].user.name;
+        bool any = false;
         cout << "-----\n";
-        cout << "Ten: " << sh.seats[m.rowIndex][m.colIndex].user.name << "\n";
-        cout << "CCCD: " << sh.seats[m.rowIndex][m.colIndex].user.cccd << "\n";
-        cout << "Phim: " << movies[m.movieIndex].title << "\n";
-        cout << "Suat: " << sh.time << "\n";
-        char rchar = 'A'+m.rowIndex;
-        cout << "Ghe: " << rchar << m.colIndex+1 << "\n";
+        for (int mi=0; mi<movieCount; mi++) {
+            for (int si=0; si<movies[mi].showCount; si++) {
+                Show &sh2 = movies[mi].shows[si];
+                for (int r=0;r<sh2.rows;r++)
+                    for (int c=0;c<sh2.cols;c++)
+                        if (sh2.seats[r][c].booked && sh2.seats[r][c].user.cccd == cccdTarget) {
+                            if (!any) {
+                                cout << "Ten: " << sh2.seats[r][c].user.name << "\n";
+                                cout << "CCCD: " << cccdTarget << "\n";
+                                any = true;
+                            }
+                            char rchar = 'A'+r;
+                            cout << "Phim: " << movies[mi].title << " | Suat: " << sh2.time << " | Ghe: " << rchar << c+1 << "\n";
+                        }
+            }
+        }
+        if (!any) { cout << "Khong tim thay ve nao.\n"; return; }
         // store context
-        contextName = sh.seats[m.rowIndex][m.colIndex].user.name;
-        contextCCCD = sh.seats[m.rowIndex][m.colIndex].user.cccd;
+        contextName = nameTarget;
+        contextCCCD = cccdTarget;
         postSearchActions();
         return;
     }
@@ -91,25 +105,32 @@ void UIManager::searchUserAndAction() {
         if (isValidCCCD(cccd)) break;
         cout << "CCCD khong hop le (chi so). Thu lai.\n";
     }
-    bool found = false;
-    for (int i=0;i<rc;i++) {
-        Position m = results[i];
-        Show &sh = movies[m.movieIndex].shows[m.showIndex];
-        if (sh.seats[m.rowIndex][m.colIndex].user.cccd == cccd) {
-            found = true;
-            cout << "-----\n";
-            cout << "Ten: " << sh.seats[m.rowIndex][m.colIndex].user.name << "\n";
-            cout << "CCCD: " << sh.seats[m.rowIndex][m.colIndex].user.cccd << "\n";
-            cout << "Phim: " << movies[m.movieIndex].title << "\n";
-            cout << "Suat: " << sh.time << "\n";
-            char rchar = 'A'+m.rowIndex;
-            cout << "Ghe: " << rchar << m.colIndex+1 << "\n";
-            contextName = sh.seats[m.rowIndex][m.colIndex].user.name;
-            contextCCCD = sh.seats[m.rowIndex][m.colIndex].user.cccd;
-            break;
+    bool foundAny = false; string foundName = "";
+    cout << "-----\n";
+    for (int mi=0; mi<movieCount; mi++) {
+        for (int si=0; si<movies[mi].showCount; si++) {
+            Show &sh = movies[mi].shows[si];
+            for (int r=0;r<sh.rows;r++)
+                for (int c=0;c<sh.cols;c++)
+                    if (sh.seats[r][c].booked && sh.seats[r][c].user.cccd == cccd) {
+                        if (!foundAny) {
+                            foundName = sh.seats[r][c].user.name;
+                            cout << "Ten: " << foundName << "\n";
+                            cout << "CCCD: " << cccd << "\n";
+                            foundAny = true;
+                        }
+                        char rchar = 'A'+r;
+                        cout << "Phim: " << movies[mi].title << " | Suat: " << sh.time << " | Ghe: " << rchar << c+1 << "\n";
+                    }
         }
     }
-    if (!found) cout << "Khong co ket qua trung CCCD.\n"; else postSearchActions();
+    if (!foundAny) {
+        cout << "Khong co ket qua trung CCCD.\n";
+    } else {
+        contextName = foundName;
+        contextCCCD = cccd;
+        postSearchActions();
+    }
 }
 
 void UIManager::postSearchActions() {
@@ -247,6 +268,7 @@ void UIManager::postSearchActions() {
 }
 
 void UIManager::flowListAndBook() {
+RESTART_LIST:
     movieManager.listMoviesDefault();
     cout << "Nhap so thu tu phim, hoac '?' de tim theo ten, '/' de sap xep, '0' de quay lai: ";
     std::string cmd; cin >> cmd;
@@ -260,18 +282,40 @@ void UIManager::flowListAndBook() {
     } else if (cmd == "?") {
         cout << "Nhap ten phim can tim: ";
         std::string q; cin.ignore(); getline(cin, q);
-        // Simple search and list matches
         Movie* movies = movieManager.getMoviesArray();
         int movieCount = movieManager.getMovieCount();
-        cout << "\nKet qua tim kiem:\n";
-        for (int i=0;i<movieCount;i++) {
-            std::string t = movies[i].title; std::string tl = t, ql = q; for (size_t a=0;a<tl.size();a++) tl[a]=tolower(tl[a]); for (size_t a=0;a<ql.size();a++) ql[a]=tolower(ql[a]);
-            if (tl.find(ql) != std::string::npos) {
-                cout << i+1 << ". " << movies[i].title << " | Earliest: " << (movies[i].showCount>0?movies[i].shows[0].time:"N/A") << "\n";
+        while (true) {
+            // Simple search and list matches with remap
+            cout << "\nKet qua tim kiem:\n";
+            int matchIdx[256]; int matchCount = 0;
+            for (int i=0;i<movieCount && matchCount<256;i++) {
+                std::string t = movies[i].title; std::string tl = t, ql = q; for (size_t a=0;a<tl.size();a++) tl[a]=tolower(tl[a]); for (size_t a=0;a<ql.size();a++) ql[a]=tolower(ql[a]);
+                if (tl.find(ql) != std::string::npos) {
+                    matchIdx[matchCount] = i;
+                    cout << matchCount+1 << ". " << movies[i].title << " | Earliest: " << (movies[i].showCount>0?movies[i].shows[0].time:"N/A") << "\n";
+                    matchCount++;
+                }
             }
+            if (matchCount == 0) {
+                cout << "Khong tim thay ket qua. Ban muon (1=Tim lai, 0=Quay lai): ";
+                std::string opt; cin >> opt;
+                if (opt == "1") {
+                    cout << "Nhap ten phim can tim: ";
+                    cin.ignore(); getline(cin, q);
+                    continue;
+                } else {
+                    goto RESTART_LIST;
+                }
+            }
+            cout << "\nChon phim de xem va dat (nhap so thu tu phim, '0' de quay lai): ";
+            std::string pick; cin >> pick;
+            if (pick == "0") { goto RESTART_LIST; }
+            int pickNum = stoi(pick);
+            if (pickNum < 1 || pickNum > matchCount) { cout << "Lua chon khong hop le.\n"; continue; }
+            // map to global index for later stage
+            cmd = std::to_string(matchIdx[pickNum-1] + 1);
+            break;
         }
-        cout << "\nChon phim de xem va dat (nhap so thu tu phim, '0' de quay lai): ";
-        cmd.clear(); cin >> cmd; if (cmd == "0") return;
     }
     cout << "\nChon phim de xem va dat (nhap so thu tu phim): ";
     int idx = 0; if (!cmd.empty()) idx = stoi(cmd); else cin >> idx;

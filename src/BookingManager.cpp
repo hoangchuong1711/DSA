@@ -8,18 +8,25 @@ using namespace std;
 int BookingManager::chooseShowForMovie(Movie &m) {
     if (m.showCount == 0) return -1;
     cout << "\nSuat chieu cua phim: " << m.title << "\n";
+    // Only list shows that have not started yet
+    int nowMin = getCurrentMinutesLocal();
+    int remap[MAX_SHOWS]; int remapCount = 0;
     for (int i=0;i<m.showCount;i++) {
-        cout << i+1 << ". " << m.shows[i].time << "  | Free seats: ";
-        int freeCnt = 0;
-        for (int r=0;r<m.shows[i].rows;r++)
-            for (int c=0;c<m.shows[i].cols;c++)
-                if (!m.shows[i].seats[r][c].booked) freeCnt++;
-        cout << freeCnt << "\n";
+        if (timeToMinutes(m.shows[i].time) >= nowMin) {
+            remap[remapCount++] = i;
+            cout << remapCount << ". " << m.shows[i].time << "  | Free seats: ";
+            int freeCnt = 0;
+            for (int r=0;r<m.shows[i].rows;r++)
+                for (int c=0;c<m.shows[i].cols;c++)
+                    if (!m.shows[i].seats[r][c].booked) freeCnt++;
+            cout << freeCnt << "\n";
+        }
     }
+    if (remapCount == 0) { cout << "Khong con suat chieu phu hop.\n"; return -1; }
     cout << "Chon suat (so): ";
     int ch; cin >> ch;
-    if (ch < 1 || ch > m.showCount) return -1;
-    return ch-1;
+    if (ch < 1 || ch > remapCount) return -1;
+    return remap[ch-1];
 }
 
 void BookingManager::displaySeats(const Show &sh) {
