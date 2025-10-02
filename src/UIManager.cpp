@@ -21,6 +21,13 @@ void UIManager::run() {
         } else if (choice == 2) {
             // Lấy mảng phim từ movieManager để truyền cho bookingManager
             searchUserAndAction();
+        } else if (choice == 3 && bookingManager.hasUndoHistory()) {
+            // Undo last booking action
+            if (bookingManager.undoLastAction(movieManager.getMoviesArray(), movieManager.getMovieCount())) {
+                cout << "Da hoan tac thanh cong!\n";
+                // Rebuild index after undo
+                getIndex().build(movieManager.getMoviesArray(), movieManager.getMovieCount());
+            }
         } else {
             std::cout << "Lua chon khong hop le. Thu lai.\n";
         }
@@ -31,6 +38,9 @@ void UIManager::displayMainMenu() {
     cout << "\n===== MENU RAP CHIEU =====\n";
     cout << "1. Danh sach phim (sap xep mac dinh theo gio)\n";
     cout << "2. Tim kiem nguoi dat (nhap TEN, neu nhieu ket qua se yeu cau CCCD)\n";
+    if (bookingManager.hasUndoHistory()) {
+        cout << "3. Hoan tac thao tac cuoi (" << (bookingManager.hasUndoHistory() ? "Co" : "Khong") << " lich su)\n";
+    }
     cout << "0. Thoat\n";
     cout << "Chon: ";
 }
@@ -66,11 +76,29 @@ void UIManager::searchUserAndAction() {
     }
 
     if (rc == 0) { cout << "Khong tim thay ket qua.\n"; return; }
-    if (rc == 1) {
-        Position m = results[0];
+    
+    // Group results by unique CCCD to avoid duplicate users
+    string uniqueCCCDs[128]; int uniqueCount = 0;
+    for (int i=0;i<rc;i++) {
+        Position m = results[i];
         Show &sh = movies[m.movieIndex].shows[m.showIndex];
-        string cccdTarget = sh.seats[m.rowIndex][m.colIndex].user.cccd;
-        string nameTarget = sh.seats[m.rowIndex][m.colIndex].user.name;
+        string cccdCheck = sh.seats[m.rowIndex][m.colIndex].user.cccd;
+        bool alreadyExists = false;
+        for (int j=0;j<uniqueCount;j++) {
+            if (uniqueCCCDs[j] == cccdCheck) {
+                alreadyExists = true;
+                break;
+            }
+        }
+        if (!alreadyExists && uniqueCount < 128) {
+            uniqueCCCDs[uniqueCount++] = cccdCheck;
+        }
+    }
+    
+    if (uniqueCount == 1) {
+        // Only one unique person found
+        string cccdTarget = uniqueCCCDs[0];
+        string nameTarget = "";
         bool any = false;
         cout << "-----\n";
         for (int mi=0; mi<movieCount; mi++) {
@@ -80,7 +108,8 @@ void UIManager::searchUserAndAction() {
                     for (int c=0;c<sh2.cols;c++)
                         if (sh2.seats[r][c].booked && sh2.seats[r][c].user.cccd == cccdTarget) {
                             if (!any) {
-                                cout << "Ten: " << sh2.seats[r][c].user.name << "\n";
+                                nameTarget = sh2.seats[r][c].user.name;
+                                cout << "Ten: " << nameTarget << "\n";
                                 cout << "CCCD: " << cccdTarget << "\n";
                                 any = true;
                             }
@@ -99,7 +128,7 @@ void UIManager::searchUserAndAction() {
 
     string cccd;
     while (true) {
-        cout << "Tim thay " << rc << " ket qua. Nhap CCCD de xac dinh (0=Quay lai): ";
+        cout << "Tim thay " << uniqueCount << " nguoi khac nhau. Nhap CCCD de xac dinh (0=Quay lai): ";
         getline(cin, cccd);
         if (cccd == "0") return; // back to menu without result
         if (isValidCCCD(cccd)) break;
@@ -225,6 +254,8 @@ void UIManager::postSearchActions() {
             sh.seats[r][c].user.cccd = q;
         }
         cout << "Da xac nhan thanh toan. Chuc ban xem phim vui ve!\n";
+        // rebuild index after booking changes
+        getIndex().build(movieManager.getMoviesArray(), movieManager.getMovieCount());
     } else if (ch == 2) {
         cin.ignore();
         cout << "Nhap CCCD cua nguoi muon huy: ";
@@ -261,7 +292,13 @@ void UIManager::postSearchActions() {
                 }
             }
         }
-        if (canceled) cout << "Huy ghe thanh cong.\n"; else cout << "Khong the huy. Kiem tra thong tin.\n";
+        if (canceled) {
+            cout << "Huy ghe thanh cong.\n";
+            // rebuild index after cancellation
+            getIndex().build(movieManager.getMoviesArray(), movieManager.getMovieCount());
+        } else {
+            cout << "Khong the huy. Kiem tra thong tin.\n";
+        }
     } else {
         return;
     }
@@ -342,7 +379,8 @@ RESTART_LIST:
     cout << "\nBan muon dat ghe cho suat nay? (1 = Co, 0 = Khong): ";
     int bok; cin >> bok;
     if (bok == 1) {
-        bookingManager.bookMultipleSeats(sh);
+        int movieIndex = idx - 1; // Convert from 1-based to 0-based index
+        bookingManager.bookMultipleSeats(sh, movieIndex, si);
         // rebuild index after booking changes
         getIndex().build(movieManager.getMoviesArray(), movieManager.getMovieCount());
     } else {

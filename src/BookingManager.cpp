@@ -53,7 +53,7 @@ bool BookingManager::isFull(const Show &sh) {
     return true;
 }
 
-void BookingManager::bookMultipleSeats(Show &sh) {
+void BookingManager::bookMultipleSeats(Show &sh, int movieIndex, int showIndex) {
     if (isFull(sh)) { cout << "Het ghe trong suat nay!\n"; return; }
     cout << "Nhap so luong ghe muon dat: ";
     int n; cin >> n;
@@ -144,6 +144,8 @@ void BookingManager::bookMultipleSeats(Show &sh) {
         int c = seatCols[i];
         sh.seats[r][c].booked = true;
         sh.seats[r][c].user = u;
+        // Record booking action in stack for undo functionality
+        recordBookingAction(movieIndex, showIndex, r, c, u, true);
     }
     cout << "Da xac nhan thanh toan. Chuc ban xem phim vui ve!\n";
 }
@@ -154,9 +156,68 @@ void BookingManager::cancelSeat(Show &sh) {
     int r,c;
     if (!parseSeatCode(id, r, c, sh)) { cout << "Ma ghe khong hop le!\n"; return; }
     if (!sh.seats[r][c].booked) { cout << "Ghe dang trong, khong the huy!\n"; return; }
+    // Record cancellation action before actually cancelling
+    User cancelledUser = sh.seats[r][c].user;
+    recordBookingAction(-1, -1, r, c, cancelledUser, false);
     sh.seats[r][c].booked = false;
     sh.seats[r][c].user.name = "";
     sh.seats[r][c].user.cccd = "";
     cout << "Huy ghe " << id << " thanh cong!\n";
+}
+
+void BookingManager::recordBookingAction(int mi, int si, int ri, int ci, const User& user, bool wasBooked) {
+    BookingAction action(mi, si, ri, ci, user, wasBooked);
+    if (!bookingHistory.push(action)) {
+        // Stack is full, could implement circular buffer or just ignore
+        // For now, just continue without recording
+    }
+}
+
+bool BookingManager::undoLastAction(Movie movies[], int movieCount) {
+    BookingAction lastAction;
+    if (!bookingHistory.pop(lastAction)) {
+        cout << "Khong co thao tac nao de hoan tac.\n";
+        return false;
+    }
+    
+    // Find the seat and reverse the action
+    bool found = false;
+    for (int mi = 0; mi < movieCount && !found; mi++) {
+        for (int si = 0; si < movies[mi].showCount && !found; si++) {
+            Show &sh = movies[mi].shows[si];
+            if (lastAction.rowIndex >= 0 && lastAction.rowIndex < sh.rows &&
+                lastAction.colIndex >= 0 && lastAction.colIndex < sh.cols) {
+                
+                if (lastAction.wasBooked) {
+                    // Undo booking: cancel the seat
+                    if (sh.seats[lastAction.rowIndex][lastAction.colIndex].booked &&
+                        sh.seats[lastAction.rowIndex][lastAction.colIndex].user.cccd == lastAction.user.cccd) {
+                        sh.seats[lastAction.rowIndex][lastAction.colIndex].booked = false;
+                        sh.seats[lastAction.rowIndex][lastAction.colIndex].user.name = "";
+                        sh.seats[lastAction.rowIndex][lastAction.colIndex].user.cccd = "";
+                        char rchar = 'A' + lastAction.rowIndex;
+                        cout << "Da hoan tac dat ghe " << rchar << (lastAction.colIndex + 1) << "\n";
+                        found = true;
+                    }
+                } else {
+                    // Undo cancellation: restore the seat
+                    if (!sh.seats[lastAction.rowIndex][lastAction.colIndex].booked) {
+                        sh.seats[lastAction.rowIndex][lastAction.colIndex].booked = true;
+                        sh.seats[lastAction.rowIndex][lastAction.colIndex].user = lastAction.user;
+                        char rchar = 'A' + lastAction.rowIndex;
+                        cout << "Da hoan tac huy ghe " << rchar << (lastAction.colIndex + 1) << "\n";
+                        found = true;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (!found) {
+        cout << "Khong the hoan tac thao tac.\n";
+        return false;
+    }
+    
+    return true;
 }
 
