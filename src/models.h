@@ -25,6 +25,7 @@ struct Showtime {
 // Struct định nghĩa một bộ phim
 struct Movie {
     std::string title;
+    double rating = 0.0; // thang diem 0..10
     Showtime showtimes[MAX_SHOWTIMES_PER_MOVIE];
     int showtimeCount = 0; // Số lượng suất chiếu thực tế của phim
 };
