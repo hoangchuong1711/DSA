@@ -44,11 +44,10 @@ private:
     Movie movieList[5];
     HashTable customerTable;
 
-    // Hàm tiện ích để tạo time_t cho một giờ, phút cụ thể trong ngày hôm nay
     time_t createTodayShowtime(int hour, int minute) {
         time_t now = time(0);
         tm localTime;
-        localtime_s(&localTime, &now); // Lấy thời gian hiện tại
+        localtime_s(&localTime, &now);
         localTime.tm_hour = hour;
         localTime.tm_min = minute;
         localTime.tm_sec = 0;
@@ -56,23 +55,15 @@ private:
     }
 
     void initializeMovies() {
-        // Khởi tạo các suất chiếu cố định
         time_t showtimes[] = {
-            createTodayShowtime(9, 0),   // 09:00
-            createTodayShowtime(14, 30), // 14:30
-            createTodayShowtime(19, 0),  // 19:00
-            createTodayShowtime(22, 15)  // 22:15
+            createTodayShowtime(23, 45), createTodayShowtime(14, 30),
+            createTodayShowtime(23, 30), createTodayShowtime(23, 15)
         };
         int numShowtimes = 4;
-
         const char* titles[] = {
-            "DAO KIEM VUNG DAT QUY",
-            "DORAEMON: NOBITA VA BAN GIAO HUONG",
-            "LAT MAT 7: MOT DIEU UOC",
-            "HANH TINH KHI: VUONG QUOC MOI",
-            "TAROT"
+            "DAO KIEM VUNG DAT QUY", "DORAEMON: NOBITA VA BAN GIAO HUONG",
+            "LAT MAT 7: MOT DIEU UOC", "HANH TINH KHI: VUONG QUOC MOI", "TAROT"
         };
-
         for (int i = 0; i < 5; ++i) {
             movieList[i].title = titles[i];
             for (int j = 0; j < numShowtimes; ++j) {
@@ -82,9 +73,8 @@ private:
         }
     }
     
-    // === Sắp xếp phim theo tên (Alphabetical) ===
+    // === THUẬT TOÁN SẮP XẾP 1: INSERTION SORT (cho danh sách phim) ===
     void sortMoviesByTitle() {
-        // Sử dụng Insertion Sort - đơn giản và hiệu quả với N=5
         for (int i = 1; i < 5; i++) {
             Movie key = movieList[i];
             int j = i - 1;
@@ -96,26 +86,65 @@ private:
         }
     }
 
+    // === THUẬT TOÁN SẮP XẾP 2: MERGE SORT (cho lịch sử đặt vé) ===
+    // Hàm trộn hai mảng con đã sắp xếp
+    void mergeBookings(Booking arr[], int left, int mid, int right) {
+        int n1 = mid - left + 1;
+        int n2 = right - mid;
+
+        Booking* L = new Booking[n1];
+        Booking* R = new Booking[n2];
+
+        for (int i = 0; i < n1; i++) L[i] = arr[left + i];
+        for (int j = 0; j < n2; j++) R[j] = arr[mid + 1 + j];
+
+        int i = 0, j = 0, k = left;
+
+        while (i < n1 && j < n2) {
+            // Sắp xếp theo thời gian suất chiếu tăng dần (gần nhất trước)
+            if (L[i].showtime->time < R[j].showtime->time) {
+                arr[k] = L[i];
+                i++;
+            } else {
+                arr[k] = R[j];
+                j++;
+            }
+            k++;
+        }
+
+        // Sao chép các phần tử còn lại (nếu có)
+        while (i < n1) arr[k++] = L[i++];
+        while (j < n2) arr[k++] = R[j++];
+
+        delete[] L;
+        delete[] R;
+    }
+
+    // Hàm chính của Merge Sort
+    void mergeSortBookings(Booking arr[], int left, int right) {
+        if (left < right) {
+            int mid = left + (right - left) / 2;
+            mergeSortBookings(arr, left, mid);
+            mergeSortBookings(arr, mid + 1, right);
+            mergeBookings(arr, left, mid, right);
+        }
+    }
+
+
     // === Các hàm hiển thị giao diện ===
     void displayMainMenu() {
         clearScreen();
-        gotoXY(30, 5);
-        std::cout << "===== MENU RAP CHIEU PHIM =====\n";
-        gotoXY(30, 7);
-        std::cout << "1. Chon phim\n";
-        gotoXY(30, 8);
-        std::cout << "2. Tim kiem nguoi dat\n";
-        gotoXY(30, 9);
-        std::cout << "0. Thoat\n";
-        gotoXY(30, 11);
-        std::cout << "Lua chon cua ban: ";
+        gotoXY(30, 5); std::cout << "===== MENU RAP CHIEU PHIM =====\n";
+        gotoXY(30, 7); std::cout << "1. Chon phim\n";
+        gotoXY(30, 8); std::cout << "2. Tim kiem nguoi dat\n";
+        gotoXY(30, 9); std::cout << "0. Thoat\n";
+        gotoXY(30, 11); std::cout << "Lua chon cua ban: ";
     }
 
     void displayMovieList() {
         clearScreen();
-        gotoXY(10, 3);
-        std::cout << "===== DANH SACH PHIM =====\n\n";
-        sortMoviesByTitle(); // Sắp xếp phim theo tên
+        gotoXY(10, 3); std::cout << "===== DANH SACH PHIM =====\n\n";
+        sortMoviesByTitle();
         for (int i = 0; i < 5; ++i) {
             std::cout << " " << i + 1 << ". " << movieList[i].title << "\n";
         }
@@ -123,20 +152,14 @@ private:
 
     void displaySeatMap(const std::string& movieTitle, Showtime& showtime) {
         clearScreen();
-        gotoXY(20, 2);
-        std::cout << "SO DO GHE - Phim: " << movieTitle << "\n";
-        gotoXY(20, 3);
-        std::cout << "Suat chieu: " << formatTime(showtime.time) << "\n";
-        gotoXY(30, 5);
-        std::cout << "--- MAN HINH ---\n\n";
+        gotoXY(20, 2); std::cout << "SO DO GHE - Phim: " << movieTitle << "\n";
+        gotoXY(20, 3); std::cout << "Suat chieu: " << formatTime(showtime.time) << "\n";
+        gotoXY(30, 5); std::cout << "--- MAN HINH ---\n\n";
         for (int i = 0; i < SEAT_ROWS; ++i) {
             std::cout << " " << (char)('A' + i) << " ";
             for (int j = 0; j < SEAT_COLS; ++j) {
-                if (showtime.seats[i][j].isBooked) {
-                    std::cout << "[X] ";
-                } else {
-                    std::cout << "[" << j + 1 << "] ";
-                }
+                if (showtime.seats[i][j].isBooked) std::cout << "[X] ";
+                else std::cout << "[" << j + 1 << "] ";
             }
             std::cout << "\n\n";
         }
@@ -150,9 +173,7 @@ private:
         int movieIndex;
         std::cin >> movieIndex;
         std::cin.ignore(10000, '\n');
-
         if (movieIndex > 0 && movieIndex <= 5) {
-            // Chuyển sang bước chọn suất chiếu
             processShowtimeSelection(&movieList[movieIndex - 1], nullptr);
         } else {
             std::cout << "Lua chon khong hop le.\n";
@@ -168,11 +189,10 @@ private:
         
         time_t now = time(0);
         int validShowtimeCount = 0;
-        // Mảng để lưu chỉ số của các suất chiếu hợp lệ
         int validShowtimeIndices[MAX_SHOWTIMES_PER_MOVIE]; 
 
         for (int i = 0; i < movie->showtimeCount; ++i) {
-            if (movie->showtimes[i].time > now) { // Chỉ hiện suất chưa chiếu
+            if (movie->showtimes[i].time > now) {
                 std::cout << " " << validShowtimeCount + 1 << ". " << formatTime(movie->showtimes[i].time) << "\n";
                 validShowtimeIndices[validShowtimeCount] = i;
                 validShowtimeCount++;
@@ -210,18 +230,13 @@ private:
         int seatCount = 0;
         std::stringstream ss(toUpper(seatInput));
         std::string token;
-        while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) {
-            seatCodes[seatCount++] = token;
-        }
+        while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) seatCodes[seatCount++] = token;
         
         if (seatCount == 0) {
-            std::cout << "Vui long nhap ma ghe.\n";
-            system("pause");
-            return;
+            std::cout << "Vui long nhap ma ghe.\n"; system("pause"); return;
         }
         
-        int validSeatRows[MAX_SEATS_PER_BOOKING];
-        int validSeatCols[MAX_SEATS_PER_BOOKING];
+        int validSeatRows[MAX_SEATS_PER_BOOKING], validSeatCols[MAX_SEATS_PER_BOOKING];
         int validSeatCount = 0;
         bool allSeatsValid = true;
         for (int i = 0; i < seatCount; ++i) {
@@ -229,8 +244,7 @@ private:
             if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
                 std::cout << "Ma ghe '" << code << "' khong hop le.\n"; allSeatsValid = false; break;
             }
-            int row = code[0] - 'A';
-            int col = std::stoi(code.substr(1)) - 1;
+            int row = code[0] - 'A', col = std::stoi(code.substr(1)) - 1;
             if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
                 std::cout << "Ma ghe '" << code << "' khong ton tai.\n"; allSeatsValid = false; break;
             }
@@ -246,11 +260,8 @@ private:
             Customer* customer = existingCustomer;
             if (!customer) {
                 std::string name, cccd;
-                std::cout << "Vui long nhap ten: ";
-                getline(std::cin, name);
-                std::cout << "Vui long nhap CCCD: ";
-                getline(std::cin, cccd);
-                
+                std::cout << "Vui long nhap ten: "; getline(std::cin, name);
+                std::cout << "Vui long nhap CCCD: "; getline(std::cin, cccd);
                 auto foundCustomer = customerTable.get(cccd);
                 if (foundCustomer.has_value()) {
                      if ((*foundCustomer)->name != name) {
@@ -264,8 +275,7 @@ private:
             }
             
             Booking newBooking;
-            newBooking.movie = movie;
-            newBooking.showtime = showtime; // Lưu suất chiếu
+            newBooking.movie = movie; newBooking.showtime = showtime;
             for (int i = 0; i < validSeatCount; ++i) {
                  showtime->seats[validSeatRows[i]][validSeatCols[i]].isBooked = true;
                  showtime->seats[validSeatRows[i]][validSeatCols[i]].bookedByCCCD = customer->cccd;
@@ -273,23 +283,18 @@ private:
             }
             customer->bookings.add(newBooking);
             printReceipt(*customer, movie, showtime, seatCodes, seatCount);
-        } else {
-            system("pause");
-        }
+        } else system("pause");
     }
 
     void printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount) {
         clearScreen();
-        gotoXY(25, 3);
-        std::cout << "====== HOA DON DAT VE ======\n\n";
+        gotoXY(25, 3); std::cout << "====== HOA DON DAT VE ======\n\n";
         std::cout << "  Khach hang: " << customer.name << "\n";
         std::cout << "  CCCD:       " << customer.cccd << "\n";
         std::cout << "  Phim:       " << movie->title << "\n";
         std::cout << "  Suat chieu: " << formatTime(showtime->time) << "\n";
         std::cout << "  Ghe da dat: ";
-        for (int i = 0; i < seatCount; ++i) {
-            std::cout << seatCodes[i] << " ";
-        }
+        for (int i = 0; i < seatCount; ++i) std::cout << seatCodes[i] << " ";
         std::cout << "\n";
         std::cout << "  So luong:   " << seatCount << " ve\n";
         std::cout << "  Tong tien:  " << seatCount * 75000 << " VND\n\n";
@@ -304,8 +309,7 @@ private:
         getline(std::cin, keyword);
         auto foundByCCCD = customerTable.get(keyword);
         if (foundByCCCD.has_value()) {
-            displayCustomerInfo(*foundByCCCD);
-            return;
+            displayCustomerInfo(*foundByCCCD); return;
         }
         
         const int MAX_NAME_MATCHES = 10;
@@ -314,22 +318,18 @@ private:
         for (int i = 0; i < HashTable::TABLE_SIZE; ++i) {
             for (int j = 0; j < customerTable.table[i].count; ++j) {
                 if (toUpper(customerTable.table[i].values[j].customerData->name).find(toUpper(keyword)) != std::string::npos) {
-                    if (foundCount < MAX_NAME_MATCHES) {
+                    if (foundCount < MAX_NAME_MATCHES) 
                         foundCustomers[foundCount++] = customerTable.table[i].values[j].customerData;
-                    }
                 }
             }
         }
 
-        if (foundCount == 0) {
-            std::cout << "Khong tim thay khach hang nao.\n";
-        } else if (foundCount == 1) {
-            displayCustomerInfo(foundCustomers[0]);
-        } else {
+        if (foundCount == 0) std::cout << "Khong tim thay khach hang nao.\n";
+        else if (foundCount == 1) displayCustomerInfo(foundCustomers[0]);
+        else {
             std::cout << "Tim thay nhieu khach hang co ten trung nhau. Vui long nhap CCCD de xac dinh:\n";
-             for (int i = 0; i < foundCount; ++i) {
+             for (int i = 0; i < foundCount; ++i)
                 std::cout << " - Ten: " << foundCustomers[i]->name << ", CCCD: " << foundCustomers[i]->cccd << std::endl;
-            }
             processCustomerSearch(); 
         }
         system("pause");
@@ -340,24 +340,37 @@ private:
         std::cout << "===== THONG TIN KHACH HANG =====\n\n";
         std::cout << "Ten: " << customer->name << "\n";
         std::cout << "CCCD: " << customer->cccd << "\n\n";
-        std::cout << "--- Cac ve da dat ---\n";
+        std::cout << "--- Cac ve da dat (da sap xep theo suat chieu moi nhat) ---\n";
 
         if(customer->bookings.isEmpty()) {
             std::cout << "Khach hang chua dat ve nao.\n";
         } else {
-            Node<Booking>* currentBookingNode = customer->bookings.head;
-            while(currentBookingNode) {
-                std::cout << " > Phim: " << currentBookingNode->data.movie->title << "\n";
-                std::cout << "   Suat chieu: " << formatTime(currentBookingNode->data.showtime->time) << "\n";
+            // Chuyển LinkedList sang mảng để sắp xếp
+            int bookingCount = customer->bookings.size();
+            Booking* bookingsArray = new Booking[bookingCount];
+            Node<Booking>* current = customer->bookings.head;
+            for (int i = 0; i < bookingCount; ++i) {
+                bookingsArray[i] = current->data;
+                current = current->next;
+            }
+
+            // GỌI HÀM SẮP XẾP MERGE SORT
+            mergeSortBookings(bookingsArray, 0, bookingCount - 1);
+
+            // In ra từ mảng đã sắp xếp
+            for (int i = 0; i < bookingCount; ++i) {
+                std::cout << " > Phim: " << bookingsArray[i].movie->title << "\n";
+                std::cout << "   Suat chieu: " << formatTime(bookingsArray[i].showtime->time) << "\n";
                 std::cout << "   Ghe: ";
-                Node<std::string>* currentSeatNode = currentBookingNode->data.bookedSeats.head;
-                while(currentSeatNode) {
-                    std::cout << currentSeatNode->data << " ";
-                    currentSeatNode = currentSeatNode->next;
+                Node<std::string>* seatNode = bookingsArray[i].bookedSeats.head;
+                while(seatNode) {
+                    std::cout << seatNode->data << " ";
+                    seatNode = seatNode->next;
                 }
                 std::cout << "\n\n";
-                currentBookingNode = currentBookingNode->next;
             }
+            
+            delete[] bookingsArray; // Giải phóng bộ nhớ mảng tạm
         }
 
         std::cout << "--------------------------------\n";
@@ -370,16 +383,9 @@ private:
         std::cin.ignore(10000, '\n');
 
         switch(choice) {
-            case '1':
-                processMovieSelectionForExistingCustomer(customer);
-                break;
-            case '2':
-                std::cout << "Chuc nang huy ve hien chua duoc ho tro.\n";
-                system("pause");
-                break;
-            case '0':
-            default:
-                return;
+            case '1': processMovieSelectionForExistingCustomer(customer); break;
+            case '2': std::cout << "Chuc nang huy ve hien chua duoc ho tro.\n"; system("pause"); break;
+            case '0': default: return;
         }
     }
     
@@ -390,7 +396,6 @@ private:
         std::cin >> movieIndex;
         std::cin.ignore(10000, '\n');
         if (movieIndex > 0 && movieIndex <= 5) {
-            // Chuyển sang chọn suất chiếu cho khách hàng cũ
             processShowtimeSelection(&movieList[movieIndex - 1], customer);
         } else {
             std::cout << "Lua chon khong hop le.\n";
