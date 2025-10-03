@@ -1,37 +1,42 @@
-// utils.h
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
 
-#include "models.h" // Cần models.h để biết Movie là gì
+#include <iostream>
 #include <string>
+#include <sstream>
+#include <algorithm> // << THÊM DÒNG NÀY
+#include <cctype>    // << THÊM DÒNG NÀY
+#include <ctime>
+#include <windows.h> 
 
-// ===== Khai báo các hàm tiện ích =====
+// Hàm di chuyển con trỏ console đến vị trí (x, y)
+void gotoXY(int x, int y) {
+    COORD coord;
+    coord.X = x;
+    coord.Y = y;
+    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
 
-// Chuyển đổi thời gian "HH:MM" sang phút
-int timeToMinutes(const std::string &t);
+// Hàm xóa màn hình console
+void clearScreen() {
+    system("cls");
+}
 
-// Tính tổng số ghế trống của một phim
-int totalFreeSeats(const Movie &m);
+// Hàm chuyển đổi chuỗi thành chữ hoa
+std::string toUpper(std::string str) {
+    std::transform(str.begin(), str.end(), str.begin(),
+                [](unsigned char c){ return std::toupper(c); });
+    return str;
+}
 
-// Lấy thời gian suất chiếu sớm nhất của một phim
-int earliestShowMinutes(const Movie &m);
+// Hàm định dạng thời gian từ time_t thành chuỗi "HH:MM DD/MM/YYYY"
+std::string formatTime(time_t t) {
+    char buffer[30];
+    tm localTime;
+    // Sử dụng localtime_s an toàn hơn localtime trên Windows
+    localtime_s(&localTime, &t); 
+    strftime(buffer, sizeof(buffer), "%H:%M %d/%m/%Y", &localTime);
+    return std::string(buffer);
+}
 
-// Sắp xếp danh sách phim bằng QuickSort
-void quickSortMovies(Movie movies[], int l, int r, int mode);
-
-// Phân tích mã ghế "A10" thành tọa độ hàng, cột
-bool parseSeatCode(const std::string &id_orig, int &r, int &c, const Show &sh);
-
-// Tách một chuỗi thành các token dựa trên dấu cách
-int splitTokens(const std::string &line, std::string tokens[], int maxTokens);
-
-// Kiểm tra tên chỉ chứa chữ cái và khoảng trắng
-bool isValidName(const std::string &name);
-
-// Kiểm tra CCCD chỉ chứa chữ số, độ dài >= 6 (có thể điều chỉnh)
-bool isValidCCCD(const std::string &cccd);
-
-// Đếm số ghế trống trong một suất chiếu
-int countFreeSeats(const Show &sh);
-
-// Lấy thời gian hiện tại (giờ:phút) theo local time, trả về phút tính từ 00:00
-int getCurrentMinutesLocal();
+#endif // UTILS_H

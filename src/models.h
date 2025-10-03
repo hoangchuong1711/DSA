@@ -1,39 +1,47 @@
-// models.h
-#pragma once // Directives này giúp tránh việc include file nhiều lần
+#ifndef MODELS_H
+#define MODELS_H
 
 #include <string>
+#include <ctime>
+#include "linkedList.h"
 
-// ===== Hằng số toàn cục =====
-const int MAX_ROWS = 5;
-const int MAX_COLS = 10;
-const int MAX_SHOWS = 5;
-const int MAX_MOVIES = 8;
-const int MAX_TOKENS = 50;
+// Các hằng số cho dễ quản lý
+const int SEAT_ROWS = 5;
+const int SEAT_COLS = 10;
+const int MAX_SHOWTIMES_PER_MOVIE = 4; // Mỗi phim có tối đa 4 suất chiếu
 
-// ===== Structs =====
-struct User {
-    std::string name;
-    std::string cccd;
-};
-
+// Struct định nghĩa một ghế ngồi
 struct Seat {
-    bool booked;
-    User user;
-    Seat() : booked(false), user() {}
+    bool isBooked = false;
+    std::string bookedByCCCD; 
 };
 
-struct Show {
-    std::string time; // "HH:MM"
-    Seat seats[MAX_ROWS][MAX_COLS];
-    int rows, cols;
-    Show() : time("00:00"), rows(MAX_ROWS), cols(MAX_COLS) {}
-    Show(std::string t) : time(t), rows(MAX_ROWS), cols(MAX_COLS) {}
+// Struct định nghĩa một suất chiếu
+struct Showtime {
+    time_t time; // Thời gian chiếu
+    Seat seats[SEAT_ROWS][SEAT_COLS];
 };
 
+// Struct định nghĩa một bộ phim
 struct Movie {
     std::string title;
-    float rating; // 1..5
-    Show shows[MAX_SHOWS];
-    int showCount;
-    Movie() : title(""), rating(0.0f), showCount(0) {}
+    Showtime showtimes[MAX_SHOWTIMES_PER_MOVIE];
+    int showtimeCount = 0; // Số lượng suất chiếu thực tế của phim
 };
+
+// Struct định nghĩa thông tin một lần đặt vé
+// Sửa lại để trỏ đến cả phim và suất chiếu cụ thể
+struct Booking {
+    Movie* movie;
+    Showtime* showtime; 
+    LinkedList<std::string> bookedSeats; 
+};
+
+// Struct định nghĩa thông tin khách hàng
+struct Customer {
+    std::string name;
+    std::string cccd;
+    LinkedList<Booking> bookings;
+};
+
+#endif // MODELS_H

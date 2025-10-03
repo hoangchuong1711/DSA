@@ -1,7 +1,10 @@
-#include "UIManager.h"
+#include <iostream>
+#include "cinema_system.h"
 
 int main() {
-    UIManager ui;
-    ui.run(); // Chỉ cần tạo đối tượng UI và chạy nó
+    // Khởi tạo và chạy hệ thống rạp chiếu phim
+    CinemaSystem cinema;
+    cinema.run();
+
     return 0;
 }
