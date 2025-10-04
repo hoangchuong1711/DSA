@@ -23,6 +23,22 @@ void clearScreen() {
     system("cls");
 }
 
+// Hàm đặt màu chữ cho console
+void setTextColor(int color) {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
+// Hàm reset màu chữ về mặc định
+void resetTextColor() {
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); // Màu trắng mặc định
+}
+
+// Các màu sắc cho ghế
+const int COLOR_GREEN = 10;   // Ghế trống
+const int COLOR_GRAY = 8;     // Ghế đã đặt tạm
+const int COLOR_ORANGE = 6;   // Ghế đã thanh toán
+const int COLOR_RED = 12;     // Ghế đã đặt bởi người khác
+
 // Hàm chuyển đổi chuỗi thành chữ hoa
 std::string toUpper(std::string str) {
     std::transform(str.begin(), str.end(), str.begin(),

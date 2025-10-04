@@ -10,10 +10,18 @@ const int SEAT_ROWS = 5;
 const int SEAT_COLS = 10;
 const int MAX_SHOWTIMES_PER_MOVIE = 4; // Mỗi phim có tối đa 4 suất chiếu
 
+// Enum định nghĩa trạng thái ghế
+enum SeatState {
+    AVAILABLE = 0,    // Ghế trống (màu xanh lá)
+    RESERVED = 1,     // Ghế đã đặt tạm (màu xám)
+    BOOKED = 2        // Ghế đã thanh toán (màu cam)
+};
+
 // Struct định nghĩa một ghế ngồi
 struct Seat {
-    bool isBooked = false;
+    SeatState state = AVAILABLE;
     std::string bookedByCCCD; 
+    std::string reservedByCCCD; // CCCD của người đặt tạm
 };
 
 // Struct định nghĩa một suất chiếu
