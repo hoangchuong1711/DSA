@@ -735,7 +735,18 @@ void cancelSeat(Customer* customer) {
         std::string seatCodeUpper = toUpper(selectedBookingPtr->bookedSeats.head->data);
         // Nếu vé chỉ có 1 ghế, hủy luôn
         if (seatCount == 1) {
-            
+            std::cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (y/n): ";
+            std::string confirm; std::getline(std::cin, confirm);
+            if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
+                std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";
+                delete[] bookingsPtrArray;
+                continue;
+            }
+            if (tolower((unsigned char)confirm[0]) == 'n') {
+                std::cout << "Da huy thao tac.\n";
+                delete[] bookingsPtrArray;
+                continue;
+            }
             int pr = -1, pc = -1;
             if (parseSeatCode(seatCodeUpper, pr, pc)) {
                 selectedBookingPtr->showtime->seats[pr][pc].state = AVAILABLE;
