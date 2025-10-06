@@ -105,15 +105,20 @@ private:
         if (left < idx - 1) quickSortMoviesByRating(arr, left, idx - 1);
         if (idx < right) quickSortMoviesByRating(arr, idx, right);
     }
-
+    // Thêm hàm so sánh cho các con trỏ Booking
+    bool compareBookingPtrs(const Booking* a, const Booking* b) {
+        // Sắp xếp theo thời gian suất chiếu tăng dần (gần nhất trước)
+        return a->showtime->time < b->showtime->time; 
+    }
     // === THUẬT TOÁN SẮP XẾP 2: MERGE SORT (cho lịch sử đặt vé) ===
     // Hàm trộn hai mảng con đã sắp xếp
-    void mergeBookings(Booking arr[], int left, int mid, int right) {
+    void mergeBookingPtrs(Booking* arr[], int left, int mid, int right) {
         int n1 = mid - left + 1;
         int n2 = right - mid;
 
-        Booking* L = new Booking[n1];
-        Booking* R = new Booking[n2];
+        // Sử dụng mảng tạm chứa con trỏ
+        Booking** L = new Booking*[n1];
+        Booking** R = new Booking*[n2];
 
         for (int i = 0; i < n1; i++) L[i] = arr[left + i];
         for (int j = 0; j < n2; j++) R[j] = arr[mid + 1 + j];
@@ -121,8 +126,7 @@ private:
         int i = 0, j = 0, k = left;
 
         while (i < n1 && j < n2) {
-            // Sắp xếp theo thời gian suất chiếu tăng dần (gần nhất trước)
-            if (L[i].showtime->time < R[j].showtime->time) {
+            if (compareBookingPtrs(L[i], R[j])) { // So sánh bằng hàm mới
                 arr[k] = L[i];
                 i++;
             } else {
@@ -132,7 +136,6 @@ private:
             k++;
         }
 
-        // Sao chép các phần tử còn lại (nếu có)
         while (i < n1) arr[k++] = L[i++];
         while (j < n2) arr[k++] = R[j++];
 
@@ -141,12 +144,12 @@ private:
     }
 
     // Hàm chính của Merge Sort
-    void mergeSortBookings(Booking arr[], int left, int right) {
+    void mergeSortBookingPtrs(Booking* arr[], int left, int right) {
         if (left < right) {
             int mid = left + (right - left) / 2;
-            mergeSortBookings(arr, left, mid);
-            mergeSortBookings(arr, mid + 1, right);
-            mergeBookings(arr, left, mid, right);
+            mergeSortBookingPtrs(arr, left, mid);
+            mergeSortBookingPtrs(arr, mid + 1, right);
+            mergeBookingPtrs(arr, left, mid, right);
         }
     }
 
@@ -548,36 +551,38 @@ private:
         std::cout << "CCCD: " << customer->cccd << "\n\n";
         std::cout << "--- Cac ve da dat (da sap xep theo suat chieu moi nhat) ---\n";
 
-        if(customer->bookings.isEmpty()) {
-            std::cout << "Khach hang chua dat ve nao.\n";
-        } else {
-            // Chuyển LinkedList sang mảng để sắp xếp
-            int bookingCount = customer->bookings.size();
-            Booking* bookingsArray = new Booking[bookingCount];
-            Node<Booking>* current = customer->bookings.head;
-            for (int i = 0; i < bookingCount; ++i) {
-                bookingsArray[i] = current->data;
-                current = current->next;
-            }
-
-            // GỌI HÀM SẮP XẾP MERGE SORT
-            mergeSortBookings(bookingsArray, 0, bookingCount - 1);
-
-            // In ra từ mảng đã sắp xếp
-            for (int i = 0; i < bookingCount; ++i) {
-                std::cout << " > Phim: " << bookingsArray[i].movie->title << "\n";
-                std::cout << "   Suat chieu: " << formatTime(bookingsArray[i].showtime->time) << "\n";
-                std::cout << "   Ghe: ";
-                Node<std::string>* seatNode = bookingsArray[i].bookedSeats.head;
-                while(seatNode) {
-                    std::cout << seatNode->data << " ";
-                    seatNode = seatNode->next;
-                }
-                std::cout << "\n\n";
-            }
-            
-            delete[] bookingsArray; // Giải phóng bộ nhớ mảng tạm
+            if(customer->bookings.isEmpty()) {
+        std::cout << "Khach hang chua dat ve nao.\n";
+    } else {
+        // Chuyển LinkedList sang mảng CON TRỎ để sắp xếp
+        int bookingCount = customer->bookings.size();
+        Booking** bookingsPtrArray = new Booking*[bookingCount]; // Mảng con trỏ
+        Node<Booking>* current = customer->bookings.head;
+        for (int i = 0; i < bookingCount; ++i) {
+            bookingsPtrArray[i] = &current->data; // Lấy địa chỉ của Booking gốc
+            current = current->next;
         }
+
+        // GỌI HÀM SẮP XẾP CON TRỎ
+        mergeSortBookingPtrs(bookingsPtrArray, 0, bookingCount - 1);
+
+        // In ra từ mảng con trỏ đã sắp xếp
+        for (int i = 0; i < bookingCount; ++i) {
+            Booking* booking = bookingsPtrArray[i]; // Lấy con trỏ booking
+            std::cout << " > Phim: " << booking->movie->title << "\n";
+            std::cout << "   Suat chieu: " << formatTime(booking->showtime->time) << "\n";
+            std::cout << "   Ghe: ";
+            Node<std::string>* seatNode = booking->bookedSeats.head;
+            while(seatNode) {
+                std::cout << seatNode->data << " ";
+                seatNode = seatNode->next;
+            }
+            std::cout << "\n\n";
+        }
+        
+        delete[] bookingsPtrArray; // Giải phóng bộ nhớ mảng con trỏ
+    }
+
 
         std::cout << "--------------------------------\n";
         std::cout << "1. Dat them ghe\n";
@@ -604,16 +609,24 @@ private:
             std::cout << "0. Quay lai\n";
             std::cout << "Lua chon sap xep: ";
             std::string sortChoice; std::getline(std::cin, sortChoice);
-            if (sortChoice == "0") return;
+            if (sortChoice == "0") {
+                displayCustomerInfo(customer);
+                return;
+            }
             if (sortChoice == "2") displayMovieListSortedByRating(); else displayMovieList();
             std::cout << "\nChon phim ban muon dat them ve (0 de quay lai): ";
             std::string line; std::getline(std::cin, line);
-            if (line == "0") return;
+            if (line == "0") {
+                displayCustomerInfo(customer);
+                return;
+            }
             if (line.empty()) { std::cout << "Thong tin khong hop le, vui long nhap lai.\n"; continue; }
             int movieIndex; try { movieIndex = std::stoi(line); } catch (...) { std::cout << "Vui long nhap so hop le.\n"; continue; }
             if (movieIndex > 0 && movieIndex <= 5) {
                 bool booked = processShowtimeSelection(&movieList[movieIndex - 1], customer);
-                if (booked) return; // Enter o hoa don -> ve menu
+                if (booked) {
+                    displayCustomerInfo(customer);
+                    return;} // Enter o hoa don -> ve menu
                 continue; // 0 o chon suat -> quay lai chon phim (dat them)
             } else {
                 std::cout << "Lua chon khong hop le, vui long nhap lai.\n";
@@ -641,253 +654,230 @@ private:
         return true;
     }
 
-    void cancelSeat(Customer* customer) {
-        while (true) {
-            clearScreen();
-            std::cout << "===== HUY GHE =====\n\n";
-            if (customer->bookings.isEmpty()) {
-                std::cout << "Ban chua co ve nao de huy.\n";
-                std::cout << "Nhan Enter de quay lai..."; std::cin.ignore();
-                return;
-            }
+void cancelSeat(Customer* customer) {
+    while (true) {
+        clearScreen();
+        std::cout << "===== HUY GHE =====\n\n";
+        if (customer->bookings.isEmpty()) {
+            std::cout << "Ban chua co ve nao de huy.\n";
+            std::cout << "Nhan Enter de quay lai..."; std::cin.ignore();
+            displayCustomerInfo(customer);
+            return;
+        }
 
-            // Hien thi tat ca cac ve da dat voi index
-            std::cout << "Cac ve da dat:\n";
-            std::cout << "----------------------------------------\n";
+        // Hien thi tat ca cac ve da dat voi index
+        std::cout << "Cac ve da dat:\n";
+        std::cout << "----------------------------------------\n";
+        
+        // Chuyển LinkedList sang mảng CON TRỎ để sắp xếp và hiển thị
+        int bookingCount = customer->bookings.size();
+        // SỬ DỤNG MẢNG CON TRỎ (Booking**)
+        Booking** bookingsPtrArray = new Booking*[bookingCount]; 
+        Node<Booking>* current = customer->bookings.head;
+        for (int i = 0; i < bookingCount; ++i) {
+            bookingsPtrArray[i] = &current->data; // Lưu CON TRỎ tới Booking gốc
+            current = current->next;
+        }
+
+        // Sắp xếp theo thời gian suất chiếu (gần nhất trước)
+        mergeSortBookingPtrs(bookingsPtrArray, 0, bookingCount - 1);
+
+        // Hiển thị danh sách vé với index
+        for (int i = 0; i < bookingCount; ++i) {
+            Booking* booking = bookingsPtrArray[i];
+            std::cout << " " << (i + 1) << ". Phim: " << booking->movie->title << "\n";
+            std::cout << "    Suat chieu: " << formatTime(booking->showtime->time) << "\n";
+            std::cout << "    Ghe: ";
+            Node<std::string>* seatNode = booking->bookedSeats.head;
+            while(seatNode) {
+                std::cout << seatNode->data << " ";
+                seatNode = seatNode->next;
+            }
+            std::cout << "(" << booking->bookedSeats.size() << " ghe)\n\n";
+        }
+
+        std::cout << " 0. Quay lai\n";
+        std::cout << "----------------------------------------\n";
+        std::cout << "Chon ve muon huy (nhap so thu tu): ";
+        
+        std::string choice; std::getline(std::cin, choice);
+        if (choice == "0") {
+            delete[] bookingsPtrArray;
+            displayCustomerInfo(customer);
+            return;
+        }
+
+        int ticketIndex;
+        try { 
+            ticketIndex = std::stoi(choice); 
+        } catch (...) { 
+            std::cout << "Vui long nhap so hop le.\n"; 
+            delete[] bookingsPtrArray;
+            continue; 
+        }
+
+        if (ticketIndex < 1 || ticketIndex > bookingCount) {
+            std::cout << "Lua chon khong hop le. Vui long nhap lai.\n";
+            delete[] bookingsPtrArray;
+            continue;
+        }
+
+        // Lấy con trỏ VÉ được chọn
+        Booking* selectedBookingPtr = bookingsPtrArray[ticketIndex - 1]; // Lấy con trỏ
+        int seatCount = selectedBookingPtr->bookedSeats.size();
+
+        // Xử lý hủy toàn bộ vé (1 ghế) hoặc chọn ghế (nhiều ghế)
+        // ... (Logic tương tự như code cũ, nhưng sử dụng 'selectedBookingPtr->' thay cho 'selectedBooking.')
+        std::string movieTitle = selectedBookingPtr->movie->title;
+        std::string showtimeStr = formatTime(selectedBookingPtr->showtime->time);
+        std::string seatCodeUpper = toUpper(selectedBookingPtr->bookedSeats.head->data);
+        // Nếu vé chỉ có 1 ghế, hủy luôn
+        if (seatCount == 1) {
             
-            // Chuyển LinkedList sang mảng để sắp xếp và hiển thị
-            int bookingCount = customer->bookings.size();
-            Booking* bookingsArray = new Booking[bookingCount];
-            Node<Booking>* current = customer->bookings.head;
-            for (int i = 0; i < bookingCount; ++i) {
-                bookingsArray[i] = current->data;
-                current = current->next;
+            int pr = -1, pc = -1;
+            if (parseSeatCode(seatCodeUpper, pr, pc)) {
+                selectedBookingPtr->showtime->seats[pr][pc].state = AVAILABLE;
+                selectedBookingPtr->showtime->seats[pr][pc].bookedByCCCD.clear();
             }
 
-            // Sắp xếp theo thời gian suất chiếu (gần nhất trước)
-            mergeSortBookings(bookingsArray, 0, bookingCount - 1);
-
-            // Hiển thị danh sách vé với index
-            for (int i = 0; i < bookingCount; ++i) {
-                std::cout << " " << (i + 1) << ". Phim: " << bookingsArray[i].movie->title << "\n";
-                std::cout << "    Suat chieu: " << formatTime(bookingsArray[i].showtime->time) << "\n";
-                std::cout << "    Ghe: ";
-                Node<std::string>* seatNode = bookingsArray[i].bookedSeats.head;
-                while(seatNode) {
-                    std::cout << seatNode->data << " ";
-                    seatNode = seatNode->next;
+            // Tìm và xóa booking khỏi danh sách (Dùng con trỏ để so sánh)
+            Node<Booking>* node = customer->bookings.head;
+            int index = 0;
+            while (node) {
+                // So sánh địa chỉ con trỏ để đảm bảo xóa đúng Booking
+                if (&node->data == selectedBookingPtr) {
+                    customer->bookings.removeAt(index);
+                    break;
                 }
-                std::cout << "(" << bookingsArray[i].bookedSeats.size() << " ghe)\n\n";
+                node = node->next;
+                index++;
             }
-
-            std::cout << " 0. Quay lai\n";
-            std::cout << "----------------------------------------\n";
-            std::cout << "Chon ve muon huy (nhap so thu tu): ";
             
-            std::string choice; std::getline(std::cin, choice);
-            if (choice == "0") {
-                delete[] bookingsArray;
-                return;
+            // ... (Phần hiển thị kết quả)
+            clearScreen();
+            std::cout << "===== HUY VE THANH CONG =====\n\n";
+            std::cout << "Phim: " << movieTitle  << "\n";
+            std::cout << "Suat chieu: " << showtimeStr  << "\n";
+            std::cout << "Ghe da huy: " << seatCodeUpper  << "\n";
+            std::cout << "So tien hoan lai: " << 75000 << " VND\n";
+            std::cout << "Ve da duoc xoa khoi danh sach.\n\n";
+            std::cout << "Nhan Enter de quay lai..."; std::cin.ignore();
+            delete[] bookingsPtrArray;
+            displayCustomerInfo(customer);
+            return;
+        }
+        // Nếu vé có nhiều ghế, cho chọn ghế cụ thể
+        else {
+            clearScreen();
+            std::cout << "===== CHON GHE CAN HUY =====\n\n";
+            std::cout << "Phim: " << selectedBookingPtr->movie->title << "\n";
+            std::cout << "Suat chieu: " << formatTime(selectedBookingPtr->showtime->time) << "\n\n";
+            std::cout << "Cac ghe trong ve nay:\n";
+            
+            // Hiển thị các ghế với index
+            Node<std::string>* seatNode = selectedBookingPtr->bookedSeats.head;
+            int seatIndex = 0;
+            while(seatNode) {
+                std::cout << " " << (seatIndex + 1) << ". " << seatNode->data << "\n";
+                seatNode = seatNode->next;
+                seatIndex++;
             }
-
-            int ticketIndex;
-            try { 
-                ticketIndex = std::stoi(choice); 
-            } catch (...) { 
-                std::cout << "Vui long nhap so hop le.\n"; 
-                delete[] bookingsArray;
-                continue; 
-            }
-
-            if (ticketIndex < 1 || ticketIndex > bookingCount) {
-                std::cout << "Lua chon khong hop le. Vui long nhap lai.\n";
-                delete[] bookingsArray;
+            
+            // ... (Phần chọn ghế, kiểm tra index)
+            std::cout << "\n 0. Quay lai\n";
+            std::cout << "----------------------------------------\n";
+            std::cout << "Chon ghe muon huy (nhap so thu tu): ";
+            
+            std::string seatChoice; std::getline(std::cin, seatChoice);
+            if (seatChoice == "0") {
+                delete[] bookingsPtrArray;
+                displayCustomerInfo(customer);
                 continue;
             }
 
-            // Lấy vé được chọn
-            Booking selectedBooking = bookingsArray[ticketIndex - 1];
-            int seatCount = selectedBooking.bookedSeats.size();
+            int selectedSeatIndex;
+            try { selectedSeatIndex = std::stoi(seatChoice); } catch (...) { /*...*/ delete[] bookingsPtrArray; continue; }
+            if (selectedSeatIndex < 1 || selectedSeatIndex > seatCount) { /*...*/ delete[] bookingsPtrArray; continue; }
 
-            // Nếu vé chỉ có 1 ghế, hủy luôn
-            if (seatCount == 1) {
-                std::cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (y/n): ";
-                std::string confirm; std::getline(std::cin, confirm);
-                if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                    std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";
-                    delete[] bookingsArray;
-                    continue;
-                }
-                if (tolower((unsigned char)confirm[0]) == 'n') {
-                    std::cout << "Da huy thao tac.\n";
-                    delete[] bookingsArray;
-                    continue;
-                }
+            // Lấy mã ghế được chọn
+            seatNode = selectedBookingPtr->bookedSeats.head;
+            for (int i = 0; i < selectedSeatIndex - 1; i++) {
+                seatNode = seatNode->next;
+            }
+            std::string seatCode = seatNode->data;
+            std::string seatCodeUpper = toUpper(seatCode);
 
-                // Hủy vé (xóa toàn bộ booking)
-                std::string seatCode = selectedBooking.bookedSeats.head->data;
-                std::string seatCodeUpper = toUpper(seatCode);
-                
-                int pr = -1, pc = -1;
-                if (parseSeatCode(seatCodeUpper, pr, pc)) {
-                    selectedBooking.showtime->seats[pr][pc].state = AVAILABLE;
-                    selectedBooking.showtime->seats[pr][pc].bookedByCCCD.clear();
-                }
+            // ... (Phần xác nhận hủy)
 
-                // Tìm và xóa booking khỏi danh sách
-                Node<Booking>* node = customer->bookings.head;
-                int index = 0;
-                while (node) {
-                    if (node->data.movie == selectedBooking.movie && 
-                        node->data.showtime == selectedBooking.showtime) {
-                        customer->bookings.removeAt(index);
+            // Hủy ghế
+            int pr = -1, pc = -1;
+            if (parseSeatCode(seatCodeUpper, pr, pc)) {
+                selectedBookingPtr->showtime->seats[pr][pc].state = AVAILABLE;
+                selectedBookingPtr->showtime->seats[pr][pc].bookedByCCCD.clear();
+            }
+
+            // === PHẦN SỬA LỖI QUAN TRỌNG NHẤT (SỬ DỤNG CON TRỎ ĐỂ TÌM BOOKING GỐC) ===
+            // Lấy con trỏ đến booking gốc trong danh sách liên kết
+            Node<Booking>* node = customer->bookings.head;
+            while (node) {
+                // So sánh địa chỉ con trỏ để đảm bảo tìm đúng Booking gốc
+                if (&node->data == selectedBookingPtr) { 
+                    
+                    // SỬA LỖI LOGIC: Xóa bằng index của ghế trong *Linked List GỐC*
+                    int indexInOriginalList = findSeatIndexInBooking(node->data, seatCodeUpper);
+
+                    if (indexInOriginalList != -1) {
+                         // Xóa bằng index đã tìm được (đúng vị trí trong Linked List)
+                        node->data.bookedSeats.removeAt(indexInOriginalList); 
+                    }
+                    
+                    break;
+                }
+                node = node->next;
+            }
+            // =========================================================================
+
+            // ... (Phần hiển thị kết quả)
+            clearScreen();
+            std::cout << "===== HUY GHE THANH CONG =====\n\n";
+            std::cout << "Phim: " << selectedBookingPtr->movie->title << "\n";
+            std::cout << "Suat chieu: " << formatTime(selectedBookingPtr->showtime->time) << "\n";
+            std::cout << "Ghe da huy: " << seatCodeUpper << "\n";
+            std::cout << "So tien hoan lai: " << 75000 << " VND\n\n";
+            
+            // Hiển thị ghế còn lại
+            int remaining = selectedBookingPtr->bookedSeats.size(); // Lấy size MỚI
+            if (remaining > 0) {
+                std::cout << "Ghe con lai: ";
+                // Chỉ cần lấy thông tin từ selectedBookingPtr (đã được cập nhật)
+                Node<std::string>* remainingSeatNode = selectedBookingPtr->bookedSeats.head;
+                while(remainingSeatNode) {
+                    std::cout << remainingSeatNode->data << " ";
+                    remainingSeatNode = remainingSeatNode->next;
+                }
+                std::cout << "\nSo ghe con lai: " << remaining << "\n";
+            } else {
+                // Nếu không còn ghế nào, xóa toàn bộ booking
+                Node<Booking>* nodeToDelete = customer->bookings.head;
+                int indexToDelete = 0;
+                while (nodeToDelete) {
+                    if (&nodeToDelete->data == selectedBookingPtr) {
+                        customer->bookings.removeAt(indexToDelete);
+                        std::cout << "Ve da duoc xoa khoi danh sach (khong con ghe nao).\n";
                         break;
                     }
-                    node = node->next;
-                    index++;
+                    nodeToDelete = nodeToDelete->next;
+                    indexToDelete++;
                 }
-
-                // Hiển thị kết quả
-                clearScreen();
-                std::cout << "===== HUY VE THANH CONG =====\n\n";
-                std::cout << "Phim: " << selectedBooking.movie->title << "\n";
-                std::cout << "Suat chieu: " << formatTime(selectedBooking.showtime->time) << "\n";
-                std::cout << "Ghe da huy: " << seatCodeUpper << "\n";
-                std::cout << "So tien hoan lai: " << 75000 << " VND\n";
-                std::cout << "Ve da duoc xoa khoi danh sach.\n\n";
-                std::cout << "Nhan Enter de quay lai..."; std::cin.ignore();
-                delete[] bookingsArray;
-                return;
             }
-            // Nếu vé có nhiều ghế, cho chọn ghế cụ thể
-            else {
-                clearScreen();
-                std::cout << "===== CHON GHE CAN HUY =====\n\n";
-                std::cout << "Phim: " << selectedBooking.movie->title << "\n";
-                std::cout << "Suat chieu: " << formatTime(selectedBooking.showtime->time) << "\n\n";
-                std::cout << "Cac ghe trong ve nay:\n";
-                
-                // Hiển thị các ghế với index
-                Node<std::string>* seatNode = selectedBooking.bookedSeats.head;
-                int seatIndex = 0;
-                while(seatNode) {
-                    std::cout << " " << (seatIndex + 1) << ". " << seatNode->data << "\n";
-                    seatNode = seatNode->next;
-                    seatIndex++;
-                }
-                
-                std::cout << "\n 0. Quay lai\n";
-                std::cout << "----------------------------------------\n";
-                std::cout << "Chon ghe muon huy (nhap so thu tu): ";
-                
-                std::string seatChoice; std::getline(std::cin, seatChoice);
-                if (seatChoice == "0") {
-                    delete[] bookingsArray;
-                    continue;
-                }
-
-                int selectedSeatIndex;
-                try { 
-                    selectedSeatIndex = std::stoi(seatChoice); 
-                } catch (...) { 
-                    std::cout << "Vui long nhap so hop le.\n"; 
-                    delete[] bookingsArray;
-                    continue; 
-                }
-
-                if (selectedSeatIndex < 1 || selectedSeatIndex > seatCount) {
-                    std::cout << "Lua chon khong hop le. Vui long nhap lai.\n";
-                    delete[] bookingsArray;
-                    continue;
-                }
-
-                // Lấy mã ghế được chọn
-                seatNode = selectedBooking.bookedSeats.head;
-                for (int i = 0; i < selectedSeatIndex - 1; i++) {
-                    seatNode = seatNode->next;
-                }
-                std::string seatCode = seatNode->data;
-                std::string seatCodeUpper = toUpper(seatCode);
-
-                std::cout << "\nBan co chac muon huy ghe " << seatCodeUpper << "? (y/n): ";
-                std::string confirm; std::getline(std::cin, confirm);
-                if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                    std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";
-                    delete[] bookingsArray;
-                    continue;
-                }
-                if (tolower((unsigned char)confirm[0]) == 'n') {
-                    std::cout << "Da huy thao tac.\n";
-                    delete[] bookingsArray;
-                    continue;
-                }
-
-                // Hủy ghế
-                int pr = -1, pc = -1;
-                if (parseSeatCode(seatCodeUpper, pr, pc)) {
-                    selectedBooking.showtime->seats[pr][pc].state = AVAILABLE;
-                    selectedBooking.showtime->seats[pr][pc].bookedByCCCD.clear();
-                }
-
-                // Xóa ghế khỏi danh sách ghế của booking
-                Node<Booking>* node = customer->bookings.head;
-                while (node) {
-                    if (node->data.movie == selectedBooking.movie && 
-                        node->data.showtime == selectedBooking.showtime) {
-                        node->data.bookedSeats.removeAt(selectedSeatIndex - 1);
-                        break;
-                    }
-                    node = node->next;
-                }
-
-                // Hiển thị kết quả
-                clearScreen();
-                std::cout << "===== HUY GHE THANH CONG =====\n\n";
-                std::cout << "Phim: " << selectedBooking.movie->title << "\n";
-                std::cout << "Suat chieu: " << formatTime(selectedBooking.showtime->time) << "\n";
-                std::cout << "Ghe da huy: " << seatCodeUpper << "\n";
-                std::cout << "So tien hoan lai: " << 75000 << " VND\n\n";
-                
-                // Hiển thị ghế còn lại
-                int remaining = seatCount - 1;
-                if (remaining > 0) {
-                    std::cout << "Ghe con lai: ";
-                    Node<Booking>* remainingNode = customer->bookings.head;
-                    while (remainingNode) {
-                        if (remainingNode->data.movie == selectedBooking.movie && 
-                            remainingNode->data.showtime == selectedBooking.showtime) {
-                            Node<std::string>* remainingSeatNode = remainingNode->data.bookedSeats.head;
-                            while(remainingSeatNode) {
-                                std::cout << remainingSeatNode->data << " ";
-                                remainingSeatNode = remainingSeatNode->next;
-                            }
-                            break;
-                        }
-                        remainingNode = remainingNode->next;
-                    }
-                    std::cout << "\nSo ghe con lai: " << remaining << "\n";
-                } else {
-                    // Nếu không còn ghế nào, xóa toàn bộ booking
-                    Node<Booking>* nodeToDelete = customer->bookings.head;
-                    int indexToDelete = 0;
-                    while (nodeToDelete) {
-                        if (nodeToDelete->data.movie == selectedBooking.movie && 
-                            nodeToDelete->data.showtime == selectedBooking.showtime) {
-                            customer->bookings.removeAt(indexToDelete);
-                            std::cout << "Ve da duoc xoa khoi danh sach (khong con ghe nao).\n";
-                            break;
-                        }
-                        nodeToDelete = nodeToDelete->next;
-                        indexToDelete++;
-                    }
-                }
-                
-                std::cout << "\nNhan Enter de quay lai..."; std::cin.ignore();
-                delete[] bookingsArray;
-                return;
-            }
+            
+            std::cout << "\nNhan Enter de quay lai..."; std::cin.ignore();
+            delete[] bookingsPtrArray;
+            displayCustomerInfo(customer);
+            return;
         }
     }
+}
 };
 
 #endif // CINEMA_SYSTEM_H
