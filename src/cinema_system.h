@@ -256,20 +256,39 @@ private:
             std::cout << "Lua chon sap xep: ";
             std::string sortChoice; std::getline(std::cin, sortChoice);
             if (sortChoice == "0") return;
-            if (sortChoice == "2") displayMovieListSortedByRating(); else displayMovieList();
-            std::cout << "\nChon phim ban muon xem (0 de quay lai): ";
-            std::string line; std::getline(std::cin, line);
-            if (line == "0") return; // back to main menu
-            if (line.empty()) { std::cout << "Thong tin khong hop le, vui long nhap lai.\n"; continue; }
-            int movieIndex;
-            try { movieIndex = std::stoi(line); } catch (...) { std::cout << "Vui long nhap so hop le.\n"; continue; }
-            if (movieIndex > 0 && movieIndex <= 5) {
-                bool booked = processShowtimeSelection(&movieList[movieIndex - 1], nullptr);
-                if (booked) return; // Enter at receipt returns to main menu
-                // else: 0 at showtime → back to choose movie (continue loop)
+            if (sortChoice == "2") displayMovieListSortedByRating(); 
+            if(sortChoice=="1") displayMovieList();
+            else {
+                std::cout << "Thong tin khong hop le, vui long nhap lai.\n";
+                std::cin.ignore();
                 continue;
-            } else {
-                std::cout << "Lua chon khong hop le, vui long nhap lai.\n";
+            }
+            while(true){
+                clearCurrentLine();
+                std::cout << "\nChon phim ban muon xem (0 de quay lai): ";
+                std::string line; std::getline(std::cin, line);
+                if (line == "0") return; // back to main menu
+                bool isNumber = !line.empty() && std::all_of(line.begin(), line.end(), ::isdigit);
+                if(!isNumber || std::stoi(line) < 0 || std::stoi(line) > 5) { 
+                    std::cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.";
+                    std::cin.ignore(); 
+                    clearCurrentLine();
+                    if(sortChoice=="2") {
+                        displayMovieListSortedByRating();
+                        continue;
+                    }
+                    else {
+                        displayMovieList();
+                        continue;
+                    }
+                }
+                int movieIndex= std::stoi(line);
+                if (movieIndex > 0 && movieIndex <= 5) {
+                    bool booked = processShowtimeSelection(&movieList[movieIndex - 1], nullptr);
+                    if (booked) return; 
+                    continue;
+                } 
+                
             }
         }
     }
@@ -298,20 +317,20 @@ private:
             }
 
             std::cout << " 0. Quay lai\n";
-            std::cout << "\nChon suat chieu (0 de quay lai): ";
+            std::cout << "\nChon suat chieu ban muon xem: ";
             std::string line; std::getline(std::cin, line);
-            if (line == "0") return false; // back to movie selection
-            if (line.empty()) { std::cout << "Thong tin khong hop le, vui long nhap lai.\n"; continue; }
-            int showtimeChoice; try { showtimeChoice = std::stoi(line); } catch (...) { std::cout << "Vui long nhap so hop le.\n"; continue; }
+            if (line == "0") return false; 
+            bool isNumber = !line.empty() && std::all_of(line.begin(), line.end(), ::isdigit);
+            if (!isNumber || std::stoi(line)<0 || std::stoi(line)>validShowtimeCount) { 
+                std::cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.\n"; std::cin.ignore();continue; 
+            }
+            int showtimeChoice = std::stoi(line);
             if (showtimeChoice > 0 && showtimeChoice <= validShowtimeCount) {
                 int actualShowtimeIndex = validShowtimeIndices[showtimeChoice - 1];
                 bool bookedNow = handleBooking(movie, &movie->showtimes[actualShowtimeIndex], existingCustomer);
-                if (bookedNow) return true; // Enter at receipt -> up one level (movie selection)
-                // User pressed 0 in booking -> stay in showtime selection
+                if (bookedNow) return true; 
                 continue;
-            } else {
-                std::cout << "Lua chon khong hop le, vui long nhap lai.\n";
-            }
+            } 
         }
     }
     
@@ -339,6 +358,7 @@ private:
             while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) {
                 if (seen.count(token)) { 
                     std::cout << "Ma ghe nhap bi trung ('" << token << "'). Vui long nhap lai toan bo danh sach ghe.\n"; 
+                    std::cin.ignore();
                     seatCount = 0; 
                     break; 
                 }
@@ -356,6 +376,7 @@ private:
                 const std::string& code = seatCodes[i];
                 if (validatedSeen.count(code)) { 
                     std::cout << "Ma ghe bi trung ('" << code << "'). Vui long nhap lai danh sach ghe.\n"; 
+                    std::cin.ignore();
                     allSeatsValid = false; 
                     break; 
                 }
@@ -363,25 +384,26 @@ private:
                 
                 if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
                     std::cout << "Ma ghe '" << code << "' khong hop le.\n"; 
+                    std::cin.ignore();
                     allSeatsValid = false; 
                     break;
                 }
                 
                 int row = code[0] - 'A', col = std::stoi(code.substr(1)) - 1;
                 if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
-                    std::cout << "Ma ghe '" << code << "' khong ton tai.\n"; 
+                    std::cout << "Ma ghe '" << code << "' khong ton tai.\n"; std::cin.ignore();
                     allSeatsValid = false; 
                     break;
                 }
                 
                 Seat& seat = showtime->seats[row][col];
                 if (seat.state == BOOKED) {
-                    std::cout << "Ghe '" << code << "' da co nguoi dat. Vui long nhap lai danh sach ghe.\n"; 
+                    std::cout << "Ghe '" << code << "' da co nguoi dat. Vui long nhap lai danh sach ghe.\n"; std::cin.ignore();
                     allSeatsValid = false; 
                     break;
                 }
                 if (seat.state == RESERVED && seat.reservedByCCCD != customerCCCD) {
-                    std::cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; 
+                    std::cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; std::cin.ignore();
                     allSeatsValid = false; 
                     break;
                 }
@@ -392,7 +414,7 @@ private:
             }
 
             if (!allSeatsValid) { 
-                std::cout << "Vui long nhap lai danh sach ghe.\n"; 
+                std::cout << "Vui long nhap lai danh sach ghe.\n"; std::cin.ignore();
                 continue; 
             }
 
@@ -415,13 +437,14 @@ private:
             std::string confirm; std::getline(std::cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
                 std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n"; 
+                std::cin.ignore();
                 // Xóa đặt tạm nếu không xác nhận
                 clearReservations(*showtime);
                 continue;
             }
             
             if (tolower((unsigned char)confirm[0]) == 'n') {
-                std::cout << "Da huy thanh toan. Cac ghe da dat tam se duoc giai phong.\n";
+                std::cout << "Da huy thanh toan. Cac ghe da dat tam se duoc giai phong.\n";std::cin.ignore();
                 // Xóa đặt tạm
                 clearReservations(*showtime);
                 continue; // quay lai nhap ghe
@@ -432,7 +455,7 @@ private:
             newBooking.movie = movie; 
             newBooking.showtime = showtime;
             
-            // Lấy thông tin khách hàng trước
+            // Lấy thông tin khách hàng
             if (!customer) {
                 std::string name, cccd;
                 std::cout << "Vui long nhap ten: ";
@@ -443,6 +466,7 @@ private:
                 if (foundCustomer.has_value()) {
                     if ((*foundCustomer)->name != name) {
                         std::cout << "Loi: CCCD nay da duoc dang ky voi ten khac!\n"; 
+                        std::cin.ignore();
                         return false;
                     }
                     customer = *foundCustomer;
@@ -509,7 +533,7 @@ private:
             std::cout << "Nhap ten khach hang (0 de quay lai): ";
             std::string nameQuery; getline(std::cin, nameQuery);
             if (nameQuery == "0") return;
-            if (!isValidName(nameQuery)) { std::cout << "Ten khong hop le, vui long nhap lai.\n"; continue; }
+            if (!isValidName(nameQuery)) { std::cout << "Ten khong hop le, vui long nhap lai.\n";std::cin.ignore(); continue; }
             std::string nameQueryNorm = toLower(trim(nameQuery));
 
             const int MAX_NAME_MATCHES = 50;
@@ -525,23 +549,23 @@ private:
             }
 
             if (foundCount == 0) {
-                std::cout << "Khong tim thay khach hang nao voi ten '" << nameQuery << "'.\n";
+                std::cout << "Khong tim thay khach hang nao voi ten '" << nameQuery << "'.\n";std::cin.ignore();
                 continue;
             } else if (foundCount == 1) {
                 displayCustomerInfo(foundCustomers[0]);
                 return;
             } else {
-                std::cout << "Tim thay nhieu khach hang co ten trung nhau. Vui long nhap CCCD de xac dinh:\n";
+                std::cout << "Tim thay nhieu khach hang co ten trung nhau. Vui long nhap CCCD de xac dinh:\n";std::cin.ignore();
                 for (int i = 0; i < foundCount; ++i)
                     std::cout << " - Ten: " << foundCustomers[i]->name << std::endl;
                 std::cout << "Nhap CCCD (12 chu so, 0 de quay lai): ";
                 std::string cccd; 
                 std::getline(std::cin, cccd);
                 if (cccd == "0") continue; // go back to name input
-                if (!isValidCCCD(cccd)) { std::cout << "CCCD khong hop le.\n"; continue; }
+                if (!isValidCCCD(cccd)) { std::cout << "CCCD khong hop le.\n";std::cin.ignore(); continue; }
                 auto foundByCCCD = customerTable.get(cccd);
                 if (foundByCCCD.has_value()) { displayCustomerInfo(*foundByCCCD); return; }
-                else { std::cout << "Khong tim thay theo CCCD da nhap.\n"; continue; }
+                else { std::cout << "Khong tim thay theo CCCD da nhap.\n";std::cin.ignore(); continue; }
             }
         }
     }
@@ -591,14 +615,14 @@ private:
         std::cout << "2. Huy ghe\n";
         std::cout << "0. Quay lai menu chinh\n";
         std::cout << "Lua chon: ";
-        char choice;
-        std::cin >> choice;
-        std::cin.ignore(10000, '\n');
-
-        switch(choice) {
-            case '1': processMovieSelectionForExistingCustomer(customer); break;
-            case '2': cancelSeat(customer); break;
-            case '0': default: return;
+        std::string line;
+        std::getline(std::cin, line);
+        if (line == "1") processMovieSelectionForExistingCustomer(customer);
+        else if (line == "2") cancelSeat(customer);
+        else if (line == "0") return;
+        else {
+            std::cout << "Lua chon khong hop le, vui long nhan Enter nhap lai.";std::cin.ignore();
+            displayCustomerInfo(customer); 
         }
     }
     
@@ -610,28 +634,58 @@ private:
             std::cout << "2. Sap xep theo rating (cao->thap)\n";
             std::cout << "0. Quay lai\n";
             std::cout << "Lua chon sap xep: ";
-            std::string sortChoice; std::getline(std::cin, sortChoice);
+            
+            std::string sortChoice;
+            std::getline(std::cin, sortChoice);
+
             if (sortChoice == "0") {
                 displayCustomerInfo(customer);
                 return;
             }
-            if (sortChoice == "2") displayMovieListSortedByRating(); else displayMovieList();
-            std::cout << "\nChon phim ban muon dat them ve (0 de quay lai): ";
-            std::string line; std::getline(std::cin, line);
-            if (line == "0") {
-                displayCustomerInfo(customer);
-                return;
+
+            if (sortChoice == "2") displayMovieListSortedByRating();
+            else if (sortChoice == "1") displayMovieList();
+            else {
+                std::cout << "Thong tin khong hop le, vui long nhap lai.\n";
+                std::cin.ignore();
+                continue;
             }
-            if (line.empty()) { std::cout << "Thong tin khong hop le, vui long nhap lai.\n"; continue; }
-            int movieIndex; try { movieIndex = std::stoi(line); } catch (...) { std::cout << "Vui long nhap so hop le.\n"; continue; }
-            if (movieIndex > 0 && movieIndex <= 5) {
+
+            // --- Vòng lặp chọn phim ---
+            while (true) {
+                clearCurrentLine();
+                std::cout << "\nChon phim ban muon dat them ve (0 de quay lai): ";
+                std::string line;
+                std::getline(std::cin, line);
+
+                if (line == "0") {
+                    displayCustomerInfo(customer);
+                    return; // quay lại menu khách hàng
+                }
+
+                bool isNumber = !line.empty() && std::all_of(line.begin(), line.end(), ::isdigit);
+                if (!isNumber || std::stoi(line) < 1 || std::stoi(line) > 5) {
+                    std::cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.";
+                    std::cin.ignore();
+                    clearCurrentLine();
+
+                    if (sortChoice == "2")
+                        displayMovieListSortedByRating();
+                    else
+                        displayMovieList();
+
+                    continue;
+                }
+
+                int movieIndex = std::stoi(line);
                 bool booked = processShowtimeSelection(&movieList[movieIndex - 1], customer);
                 if (booked) {
                     displayCustomerInfo(customer);
-                    return;} // Enter o hoa don -> ve menu
-                continue; // 0 o chon suat -> quay lai chon phim (dat them)
-            } else {
-                std::cout << "Lua chon khong hop le, vui long nhap lai.\n";
+                    return; // về menu khách hàng sau khi đặt xong
+                }
+
+                // nếu người dùng chọn 0 ở bước chọn suất chiếu -> quay lại chọn phim
+                continue;
             }
         }
     }
@@ -713,13 +767,13 @@ void cancelSeat(Customer* customer) {
         try { 
             ticketIndex = std::stoi(choice); 
         } catch (...) { 
-            std::cout << "Vui long nhap so hop le.\n"; 
+            std::cout << "Vui long nhap so hop le.\n"; std::cin.ignore();
             delete[] bookingsPtrArray;
             continue; 
         }
 
         if (ticketIndex < 1 || ticketIndex > bookingCount) {
-            std::cout << "Lua chon khong hop le. Vui long nhap lai.\n";
+            std::cout << "Lua chon khong hop le. Vui long nhap lai.\n";std::cin.ignore();
             delete[] bookingsPtrArray;
             continue;
         }
@@ -738,12 +792,12 @@ void cancelSeat(Customer* customer) {
             std::cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (y/n): ";
             std::string confirm; std::getline(std::cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";
+                std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";std::cin.ignore();
                 delete[] bookingsPtrArray;
                 continue;
             }
             if (tolower((unsigned char)confirm[0]) == 'n') {
-                std::cout << "Da huy thao tac.\n";
+                std::cout << "Da huy thao tac.\n";std::cin.ignore();
                 delete[] bookingsPtrArray;
                 continue;
             }
@@ -785,7 +839,7 @@ void cancelSeat(Customer* customer) {
             std::cout << "===== CHON GHE CAN HUY =====\n\n";
             std::cout << "Phim: " << selectedBookingPtr->movie->title << "\n";
             std::cout << "Suat chieu: " << formatTime(selectedBookingPtr->showtime->time) << "\n\n";
-            std::cout << "Cac ghe trong ve nay:\n";
+            std::cout << "Cac ghe da dat:\n";
             
             // Hiển thị các ghế với index
             Node<std::string>* seatNode = selectedBookingPtr->bookedSeats.head;
@@ -804,8 +858,8 @@ void cancelSeat(Customer* customer) {
             std::string seatChoice; std::getline(std::cin, seatChoice);
             if (seatChoice == "0") {
                 delete[] bookingsPtrArray;
-                displayCustomerInfo(customer);
-                continue;
+                cancelSeat(customer);
+                return;
             }
 
             // Parse multiple tokens: indices (1-based) or seat codes (e.g., A1)
@@ -839,11 +893,25 @@ void cancelSeat(Customer* customer) {
                         continue;
                     }
                 }
+                std::cout << "\n[LOI]: \"" << tok << "\" khong phai la so thu tu hop le (1-" << seatCount << ") hoac ma ghe da dat.\n"; // THÔNG BÁO LỖI
                 anyInvalid = true;
                 break;
             }
 
-            if (anyInvalid || indices.empty()) { delete[] bookingsPtrArray; continue; }
+            if (anyInvalid) {
+                std::cout << "Nhan Enter de thu lai..."; std::cin.ignore();
+                delete[] bookingsPtrArray; 
+                continue; 
+            }
+            
+            if (indices.empty()) { 
+                // Trường hợp người dùng nhập các token hợp lệ nhưng đã bị trùng (đã được thêm vào 'indices') 
+                // hoặc chỉ nhập khoảng trắng/không nhập gì.
+                std::cout << "\n[LOI]: Vui long nhap it nhat mot so thu tu hoac ma ghe de huy.\n";
+                std::cout << "Nhan Enter de thu lai..."; std::cin.ignore();
+                delete[] bookingsPtrArray;
+                continue; 
+            }
 
             // Build list of codes to cancel for confirmation
             std::vector<std::string> toCancelCodes;

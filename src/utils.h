@@ -23,6 +23,12 @@ void clearScreen() {
     system("cls");
 }
 
+// ham dua con tro ve dau dòng hien tại
+void clearCurrentLine() {
+    std::cout << "\r\33[2K";
+    std::cout.flush();
+}
+
 // Hàm đặt màu chữ cho console
 void setTextColor(int color) {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
