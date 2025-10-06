@@ -6,12 +6,17 @@
       "type": "shell",
       "command": "g++",
       "args": [
-        "-g", // Cờ này dùng để debug, có thể giữ lại
-        // Liệt kê tường minh từng file .cpp trong thư mục src
+        "-g",
         "src/main.cpp",
-        
-        "-o", // Chỉ định file output
-        "main.exe" // Tên file thực thi sẽ được tạo ra
+        "src/utils.cpp",
+        "src/cinema/CinemaSystem_Booking.cpp",
+        "src/cinema/CinemaSystem_Cancel.cpp",
+        "src/cinema/CinemaSystem_Data.cpp",
+        "src/cinema/CinemaSystem_Display.cpp",
+        "src/cinema/CinemaSystem_Main.cpp",
+        "src/cinema/CinemaSystem_Sort.cpp",
+        "-o",
+        "main.exe"
       ],
       "group": {
         "kind": "build",

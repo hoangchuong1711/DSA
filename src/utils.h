@@ -4,108 +4,33 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <algorithm> // << THÊM DÒNG NÀY
-#include <cctype>    // << THÊM DÒNG NÀY
+#include <algorithm>
+#include <cctype>
 #include <ctime>
-#include <windows.h> 
+#include <windows.h>
 #include <regex>
 
-// Hàm di chuyển con trỏ console đến vị trí (x, y)
-void gotoXY(int x, int y) {
-    COORD coord;
-    coord.X = x;
-    coord.Y = y;
-    SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
-}
+// ====== Khai báo hằng số màu ======
+extern const int COLOR_GREEN;
+extern const int COLOR_GRAY;
+extern const int COLOR_ORANGE;
+extern const int COLOR_RED;
 
-// Hàm xóa màn hình console
-void clearScreen() {
-    system("cls");
-}
+// ====== Khai báo hàm ======
+void gotoXY(int x, int y);
+void clearScreen();
+void clearCurrentLine();
+void setTextColor(int color);
+void resetTextColor();
 
-// ham dua con tro ve dau dòng hien tại
-void clearCurrentLine() {
-    std::cout << "\r\33[2K";
-    std::cout.flush();
-}
+std::string toUpper(std::string str);
+std::string toLower(std::string str);
+std::string formatTime(time_t t);
 
-// Hàm đặt màu chữ cho console
-void setTextColor(int color) {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
-}
-
-// Hàm reset màu chữ về mặc định
-void resetTextColor() {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); // Màu trắng mặc định
-}
-
-// Các màu sắc cho ghế
-const int COLOR_GREEN = 10;   // Ghế trống
-const int COLOR_GRAY = 8;     // Ghế đã đặt tạm
-const int COLOR_ORANGE = 6;   // Ghế đã thanh toán
-const int COLOR_RED = 12;     // Ghế đã đặt bởi người khác
-
-// Hàm chuyển đổi chuỗi thành chữ hoa
-std::string toUpper(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-                [](unsigned char c){ return std::toupper(c); });
-    return str;
-}
-
-// Hàm chuyển đổi chuỗi thành chữ thường
-std::string toLower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-                [](unsigned char c){ return std::tolower(c); });
-    return str;
-}
-
-// Hàm định dạng thời gian từ time_t thành chuỗi "HH:MM DD/MM/YYYY"
-std::string formatTime(time_t t) {
-    char buffer[30];
-    tm localTime;
-    // Sử dụng localtime_s an toàn hơn localtime trên Windows
-    localtime_s(&localTime, &t); 
-    strftime(buffer, sizeof(buffer), "%H:%M %d/%m/%Y", &localTime);
-    return std::string(buffer);
-}
-
-// --- Helpers: validation for Name and CCCD ---
-static inline std::string trim(const std::string& s) {
-    size_t start = 0; while (start < s.size() && std::isspace((unsigned char)s[start])) start++;
-    size_t end = s.size(); while (end > start && std::isspace((unsigned char)s[end-1])) end--;
-    return s.substr(start, end - start);
-}
-
-inline bool isValidName(const std::string& input) {
-    std::string s = trim(input);
-    if (s.size() < 2) return false;
-    for (unsigned char ch : s) {
-        if (ch == ' ') continue;
-        if (!std::isalpha(ch)) return false;
-    }
-    return true;
-}
-
-inline bool isValidCCCD(const std::string& input) {
-    if (input.size() != 12) return false;
-    for (unsigned char ch : input) if (!std::isdigit(ch)) return false;
-    return true;
-}
-
-inline std::string promptValidatedName() {
-    while (true) {
-        std::string name; std::getline(std::cin, name);
-        if (isValidName(name)) return trim(name);
-        std::cout << "Ten khong hop le. Ten chi duoc chua chu cai va khoang trang, tu 2 ky tu tro len. Vui long nhap lai: ";
-    }
-}
-
-inline std::string promptValidatedCCCD() {
-    while (true) {
-        std::string cccd; std::getline(std::cin, cccd);
-        if (isValidCCCD(cccd)) return cccd;
-        std::cout << "CCCD khong hop le. CCCD phai gom 12 chu so. Vui long nhap lai: ";
-    }
-}
+std::string trim(const std::string& s);
+bool isValidName(const std::string& input);
+bool isValidCCCD(const std::string& input);
+std::string promptValidatedName();
+std::string promptValidatedCCCD();
 
 #endif // UTILS_H

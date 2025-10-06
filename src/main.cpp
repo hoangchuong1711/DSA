@@ -1,5 +1,5 @@
 #include <iostream>
-#include "cinema_system.h"
+#include "cinema/CinemaSystem.h"
 
 int main() {
     // Khởi tạo và chạy hệ thống rạp chiếu phim
