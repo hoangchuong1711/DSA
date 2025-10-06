@@ -1,6 +1,7 @@
 #ifndef CINEMA_SYSTEM_H
 #define CINEMA_SYSTEM_H
 
+#include "linkedList.h"
 #include "models.h"
 #include "hashTable.h"
 #include "utils.h"
@@ -8,7 +9,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_set>
-#include <vector>
+
 #include <algorithm>
 
 class CinemaSystem {
@@ -864,8 +865,15 @@ void cancelSeat(Customer* customer) {
 
             // Parse multiple tokens: indices (1-based) or seat codes (e.g., A1)
             std::stringstream ss(seatChoice);
-            std::vector<int> indices;
-            auto containsIndex = [&](int v){ for(int x: indices) if (x==v) return true; return false; };
+            LinkedList<int> indices;
+            auto containsIndex = [&](int v) {
+                Node<int>* cur = indices.head;
+                while (cur) {
+                    if (cur->data == v) return true;
+                    cur = cur->next;
+                }
+                return false;
+            };
             auto toUpperStr = [](std::string s){ for(char& c: s) c = (char)toupper((unsigned char)c); return s; };
             std::string tok;
             bool anyInvalid = false;
@@ -876,7 +884,7 @@ void cancelSeat(Customer* customer) {
                     size_t pos = 0;
                     int asIndex = std::stoi(tok, &pos);
                     if (pos == tok.size() && asIndex >= 1 && asIndex <= seatCount) {
-                        if (!containsIndex(asIndex)) indices.push_back(asIndex);
+                        if (!containsIndex(asIndex)) indices.add(asIndex);
                         accepted = true;
                     }
                 } catch (...) {}
@@ -889,7 +897,7 @@ void cancelSeat(Customer* customer) {
                     int foundIdx = findSeatIndexInBooking(*selectedBookingPtr, codeUpper);
                     if (foundIdx != -1) {
                         int oneBased = foundIdx + 1;
-                        if (!containsIndex(oneBased)) indices.push_back(oneBased);
+                        if (!containsIndex(oneBased)) indices.add(oneBased);
                         continue;
                     }
                 }
@@ -904,7 +912,7 @@ void cancelSeat(Customer* customer) {
                 continue; 
             }
             
-            if (indices.empty()) { 
+            if (indices.isEmpty()) { 
                 // Trường hợp người dùng nhập các token hợp lệ nhưng đã bị trùng (đã được thêm vào 'indices') 
                 // hoặc chỉ nhập khoảng trắng/không nhập gì.
                 std::cout << "\n[LOI]: Vui long nhap it nhat mot so thu tu hoac ma ghe de huy.\n";
@@ -914,13 +922,22 @@ void cancelSeat(Customer* customer) {
             }
 
             // Build list of codes to cancel for confirmation
-            std::vector<std::string> toCancelCodes;
-            for (int oneBasedIdx : indices) {
+            LinkedList<std::string> toCancelCodes;
+            Node<int>* idxNode = indices.head;
+            while (idxNode) {
+                int oneBasedIdx = idxNode->data;
                 Node<std::string>* sn = selectedBookingPtr->bookedSeats.head;
-                for (int i = 1; i < oneBasedIdx; ++i) sn = sn->next;
-                toCancelCodes.push_back(toUpperStr(sn->data));
+                for (int i = 1; i < oneBasedIdx; ++i)
+                    sn = sn->next;
+                toCancelCodes.add(toUpperStr(sn->data));
+                idxNode = idxNode->next;
             }
-            std::cout << "\nCac ghe se huy: "; for (auto& c: toCancelCodes) std::cout << c << " ";
+            std::cout << "\nCac ghe se huy: ";
+            Node<std::string>* cNode = toCancelCodes.head;
+            while (cNode) {
+                std::cout << cNode->data << " ";
+                cNode = cNode->next;
+            }
             std::cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n";
             std::cout << "Xac nhan (y/n): ";
             std::string confirm; std::getline(std::cin, confirm);
@@ -928,27 +945,37 @@ void cancelSeat(Customer* customer) {
             if (tolower((unsigned char)confirm[0])=='n') { delete[] bookingsPtrArray; continue; }
 
             // Sort desc to remove safely
-            std::sort(indices.begin(), indices.end(), std::greater<int>());
+            indices.sortDesc();
 
             // Cancel seats: update showtime then remove from booking
-            for (int oneBasedIdx : indices) {
+            Node<int>* idxNode2 = indices.head;
+            while (idxNode2) {
+                int oneBasedIdx = idxNode2->data;
                 Node<std::string>* sn = selectedBookingPtr->bookedSeats.head;
-                for (int i = 1; i < oneBasedIdx; ++i) sn = sn->next;
+                for (int i = 1; i < oneBasedIdx; ++i)
+                    sn = sn->next;
+
                 std::string codeUpper = toUpperStr(sn->data);
                 int pr=-1, pc=-1;
                 if (parseSeatCode(codeUpper, pr, pc)) {
                     selectedBookingPtr->showtime->seats[pr][pc].state = AVAILABLE;
                     selectedBookingPtr->showtime->seats[pr][pc].bookedByCCCD.clear();
                 }
-                selectedBookingPtr->bookedSeats.removeAt(oneBasedIdx - 1);
-            }
 
+                selectedBookingPtr->bookedSeats.removeAt(oneBasedIdx - 1);
+                idxNode2 = idxNode2->next;
+            }
             // Show result
             clearScreen();
             std::cout << "===== HUY GHE THANH CONG =====\n\n";
             std::cout << "Phim: " << selectedBookingPtr->movie->title << "\n";
             std::cout << "Suat chieu: " << formatTime(selectedBookingPtr->showtime->time) << "\n";
-            std::cout << "Cac ghe da huy: "; for (auto& c: toCancelCodes) std::cout << c << " ";
+            std::cout << "Cac ghe da huy: ";
+            Node<std::string>* canceledNode = toCancelCodes.head;
+            while (canceledNode) {
+                std::cout << canceledNode->data << " ";
+                canceledNode = canceledNode->next;
+            }
             std::cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n\n";
 
             int remaining = selectedBookingPtr->bookedSeats.size();

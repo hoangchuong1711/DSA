@@ -78,7 +78,35 @@ struct LinkedList {
         }
         listSize = 0;
     }
-    
+
+    // Kiểm tra có chứa phần tử v không
+    bool contains(T v) {
+        Node<T>* cur = head;
+        while (cur) {
+            if (cur->data == v) return true;
+            cur = cur->next;
+        }
+        return false;
+    }
+
+    // Đổi chỗ 2 node (hỗ trợ sắp xếp)
+    void swap(Node<T>* a, Node<T>* b) {
+        T tmp = a->data;
+        a->data = b->data;
+        b->data = tmp;
+    }
+
+    // Sắp xếp giảm dần (chỉ dùng cho int)
+    void sortDesc() {
+        if (!head || !head->next) return;
+        for (Node<T>* i = head; i->next; i = i->next) {
+            for (Node<T>* j = i->next; j; j = j->next) {
+                if (i->data < j->data)
+                    swap(i, j);
+            }
+        }
+    }
+
     // Destructor để tự động giải phóng bộ nhớ
     ~LinkedList() {
         clear();
