@@ -513,7 +513,7 @@ private:
             // Check if customer table is completely empty
             bool hasAnyCustomers = false;
             for (int i = 0; i < HashTable::TABLE_SIZE; ++i) {
-                if (customerTable.table[i].count > 0) {
+                if (customerTable.table[i].listSize > 0) { 
                     hasAnyCustomers = true;
                     break;
                 }
@@ -537,12 +537,19 @@ private:
             const int MAX_NAME_MATCHES = 50;
             Customer* foundCustomers[MAX_NAME_MATCHES];
             int foundCount = 0;
+            // Duyệt qua tất cả các bucket (O(TABLE_SIZE))
             for (int i = 0; i < HashTable::TABLE_SIZE; ++i) {
-                for (int j = 0; j < customerTable.table[i].count; ++j) {
-                    if (toLower(customerTable.table[i].values[j].customerData->name) == nameQueryNorm) {
-                        if (foundCount < MAX_NAME_MATCHES)
-                            foundCustomers[foundCount++] = customerTable.table[i].values[j].customerData;
+                // Duyệt qua Linked List trong bucket hiện tại (O(collision_chain_length))
+                Node<HashItem>* currentItemNode = customerTable.table[i].head; 
+                
+                while (currentItemNode != nullptr) {
+                    // currentItemNode->data là một HashItem { std::string key, Customer* customerData }
+                    if (toLower(currentItemNode->data.customerData->name) == nameQueryNorm) { 
+                        if (foundCount < MAX_NAME_MATCHES) {
+                            foundCustomers[foundCount++] = currentItemNode->data.customerData;
+                        }
                     }
+                    currentItemNode = currentItemNode->next;
                 }
             }
 
