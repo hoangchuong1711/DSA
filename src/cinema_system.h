@@ -185,7 +185,7 @@ private:
         for (int i = 0; i < 5; ++i) movieList[i] = temp[i];
     }
 
-    void displaySeatMap(const std::string& movieTitle, Showtime& showtime, const std::string& currentCustomerCCCD = "") {
+    void displaySeatMap(const std::string& movieTitle, Showtime& showtime ) {
         clearScreen();
         gotoXY(20, 2); std::cout << "SO DO GHE - Phim: " << movieTitle << "\n";
         gotoXY(20, 3); std::cout << "Suat chieu: " << formatTime(showtime.time) << "\n";
@@ -203,10 +203,8 @@ private:
                         std::cout << "[" << j + 1 << "] ";
                         break;
                     case RESERVED:
-                        if (currentCustomerCCCD == seat.reservedByCCCD) {
                             setTextColor(COLOR_GRAY);
                             std::cout << "[" << j + 1 << "] ";
-                        }
                         break;
                     case BOOKED:
                         setTextColor(COLOR_ORANGE);
@@ -231,11 +229,10 @@ private:
     }
 
     // Hàm xóa tất cả đặt tạm của một khách hàng
-    void clearReservations(Showtime& showtime, const std::string& customerCCCD) {
+    void clearReservations(Showtime& showtime) {
         for (int i = 0; i < SEAT_ROWS; ++i) {
             for (int j = 0; j < SEAT_COLS; ++j) {
-                if (showtime.seats[i][j].state == RESERVED && 
-                    showtime.seats[i][j].reservedByCCCD == customerCCCD) {
+                if (showtime.seats[i][j].state == RESERVED) {
                     showtime.seats[i][j].state = AVAILABLE;
                     showtime.seats[i][j].reservedByCCCD.clear();
                 }
@@ -318,35 +315,14 @@ private:
         Customer* customer = existingCustomer;
         std::string customerCCCD = "";
         
-        // Lấy thông tin khách hàng trước
-        if (!customer) {
-            std::string name, cccd;
-            std::cout << "Vui long nhap ten: ";
-            name = toLower(promptValidatedName());
-            std::cout << "Vui long nhap CCCD: ";
-            cccd = promptValidatedCCCD();
-            auto foundCustomer = customerTable.get(cccd);
-            if (foundCustomer.has_value()) {
-                 if ((*foundCustomer)->name != name) {
-                    std::cout << "Loi: CCCD nay da duoc dang ky voi ten khac!\n"; 
-                    return false;
-                 }
-                 customer = *foundCustomer;
-            } else {
-                customer = new Customer{name, cccd};
-                customerTable.add(cccd, customer);
-            }
-        }
-        customerCCCD = customer->cccd;
-        
         while (true) {
-            displaySeatMap(movie->title, *showtime, customerCCCD);
+            displaySeatMap(movie->title, *showtime);
             std::cout << "\nNhap cac ghe can dat, cach nhau boi dau cach (vi du: A1 B2 C3).\n";
             std::cout << "Nhap 0 de quay lai.\n> ";
             std::string seatInput; getline(std::cin, seatInput);
             if (seatInput == "0") {
                 // Xóa tất cả đặt tạm trước khi quay lại
-                clearReservations(*showtime, customerCCCD);
+                clearReservations(*showtime);
                 return false;
             }
             
@@ -416,17 +392,17 @@ private:
             }
 
             // Xóa tất cả đặt tạm cũ của khách hàng này
-            clearReservations(*showtime, customerCCCD);
+            clearReservations(*showtime);
             
             // Đặt tạm các ghế mới
             for (int i = 0; i < validSeatCount; ++i) {
                 Seat& seat = showtime->seats[validSeatRows[i]][validSeatCols[i]];
                 seat.state = RESERVED;
-                seat.reservedByCCCD = customerCCCD;
+                
             }
             
             // Hiển thị lại sơ đồ ghế với đặt tạm
-            displaySeatMap(movie->title, *showtime, customerCCCD);
+            displaySeatMap(movie->title, *showtime);
             
             // Xác nhận thanh toán
             int totalCost = validSeatCount * 75000;
@@ -435,14 +411,14 @@ private:
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
                 std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n"; 
                 // Xóa đặt tạm nếu không xác nhận
-                clearReservations(*showtime, customerCCCD);
+                clearReservations(*showtime);
                 continue;
             }
             
             if (tolower((unsigned char)confirm[0]) == 'n') {
                 std::cout << "Da huy thanh toan. Cac ghe da dat tam se duoc giai phong.\n";
                 // Xóa đặt tạm
-                clearReservations(*showtime, customerCCCD);
+                clearReservations(*showtime);
                 continue; // quay lai nhap ghe
             }
 
@@ -451,6 +427,27 @@ private:
             newBooking.movie = movie; 
             newBooking.showtime = showtime;
             
+            // Lấy thông tin khách hàng trước
+            if (!customer) {
+                std::string name, cccd;
+                std::cout << "Vui long nhap ten: ";
+                name = toLower(promptValidatedName());
+                std::cout << "Vui long nhap CCCD: ";
+                cccd = promptValidatedCCCD();
+                auto foundCustomer = customerTable.get(cccd);
+                if (foundCustomer.has_value()) {
+                    if ((*foundCustomer)->name != name) {
+                        std::cout << "Loi: CCCD nay da duoc dang ky voi ten khac!\n"; 
+                        return false;
+                    }
+                    customer = *foundCustomer;
+                } else {
+                    customer = new Customer{name, cccd};
+                    customerTable.add(cccd, customer);
+                }
+            }
+            customerCCCD = customer->cccd;
+
             for (int i = 0; i < validSeatCount; ++i) {
                 Seat& seat = showtime->seats[validSeatRows[i]][validSeatCols[i]];
                 seat.state = BOOKED;
