@@ -8,7 +8,6 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <unordered_set>
 
 #include <algorithm>
 
@@ -354,16 +353,21 @@ private:
             std::string seatCodes[MAX_SEATS_PER_BOOKING];
             int seatCount = 0;
             std::stringstream ss(toUpper(seatInput));
-            std::unordered_set<std::string> seen;
+            // Dùng mảng đã parse để kiểm tra trùng lặp
+            auto isDuplicate = [&](const std::string& checkCode, int currentCount) -> bool {
+                for(int k = 0; k < currentCount; ++k) {
+                    if (seatCodes[k] == checkCode) return true;
+                }
+                return false;
+            };
             std::string token;
             while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) {
-                if (seen.count(token)) { 
+                if (isDuplicate(token, seatCount)) { // Kiểm tra trùng lặp trong mảng đã parse
                     std::cout << "Ma ghe nhap bi trung ('" << token << "'). Vui long nhap lai toan bo danh sach ghe.\n"; 
                     std::cin.ignore();
                     seatCount = 0; 
                     break; 
                 }
-                seen.insert(token);
                 seatCodes[seatCount++] = token;
             }
             if (seatCount == 0) continue;
@@ -371,17 +375,10 @@ private:
             int validSeatRows[MAX_SEATS_PER_BOOKING], validSeatCols[MAX_SEATS_PER_BOOKING];
             int validSeatCount = 0; 
             bool allSeatsValid = true;
-            std::unordered_set<std::string> validatedSeen;
-            
+            // Không cần validatedSeen nữa vì đã kiểm tra trùng lặp trong vòng lặp parse
+
             for (int i = 0; i < seatCount; ++i) {
                 const std::string& code = seatCodes[i];
-                if (validatedSeen.count(code)) { 
-                    std::cout << "Ma ghe bi trung ('" << code << "'). Vui long nhap lai danh sach ghe.\n"; 
-                    std::cin.ignore();
-                    allSeatsValid = false; 
-                    break; 
-                }
-                validatedSeen.insert(code);
                 
                 if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
                     std::cout << "Ma ghe '" << code << "' khong hop le.\n"; 
