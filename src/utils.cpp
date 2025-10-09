@@ -1,5 +1,5 @@
 #include "utils.h"
-
+using namespace std;
 // ====== Các hằng số ======
 const int COLOR_GREEN = 10;   // Ghế trống
 const int COLOR_GRAY = 8;     // Ghế đã đặt tạm
@@ -19,8 +19,8 @@ void clearScreen() {
 }
 
 void clearCurrentLine() {
-    std::cout << "\r\33[2K";
-    std::cout.flush();
+    cout << "\r\33[2K";
+    cout.flush();
 }
 
 void setTextColor(int color) {
@@ -31,64 +31,64 @@ void resetTextColor() {
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
 
-std::string toUpper(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-        [](unsigned char c){ return std::toupper(c); });
+string toUpper(string str) {
+    transform(str.begin(), str.end(), str.begin(),
+        [](unsigned char c){ return toupper(c); });
     return str;
 }
 
-std::string toLower(std::string str) {
-    std::transform(str.begin(), str.end(), str.begin(),
-        [](unsigned char c){ return std::tolower(c); });
+string toLower(string str) {
+    transform(str.begin(), str.end(), str.begin(),
+        [](unsigned char c){ return tolower(c); });
     return str;
 }
 
-std::string formatTime(time_t t) {
+string formatTime(time_t t) {
     char buffer[30];
     tm localTime;
     localtime_s(&localTime, &t);
     strftime(buffer, sizeof(buffer), "%H:%M %d/%m/%Y", &localTime);
-    return std::string(buffer);
+    return string(buffer);
 }
 
 // ====== Validation helpers ======
-std::string trim(const std::string& s) {
+string trim(const string& s) {
     size_t start = 0; 
-    while (start < s.size() && std::isspace((unsigned char)s[start])) start++;
+    while (start < s.size() && isspace((unsigned char)s[start])) start++;
     size_t end = s.size(); 
-    while (end > start && std::isspace((unsigned char)s[end-1])) end--;
+    while (end > start && isspace((unsigned char)s[end-1])) end--;
     return s.substr(start, end - start);
 }
 
-bool isValidName(const std::string& input) {
-    std::string s = trim(input);
+bool isValidName(const string& input) {
+    string s = trim(input);
     if (s.size() < 2) return false;
     for (unsigned char ch : s) {
         if (ch == ' ') continue;
-        if (!std::isalpha(ch)) return false;
+        if (!isalpha(ch)) return false;
     }
     return true;
 }
 
-bool isValidCCCD(const std::string& input) {
+bool isValidCCCD(const string& input) {
     if (input.size() != 12) return false;
     for (unsigned char ch : input)
-        if (!std::isdigit(ch)) return false;
+        if (!isdigit(ch)) return false;
     return true;
 }
 
-std::string promptValidatedName() {
+string promptValidatedName() {
     while (true) {
-        std::string name; std::getline(std::cin, name);
+        string name; getline(cin, name);
         if (isValidName(name)) return trim(name);
-        std::cout << "Ten khong hop le. Ten chi duoc chua chu cai va khoang trang, tu 2 ky tu tro len. Vui long nhap lai: ";
+        cout << "Ten khong hop le. Ten chi duoc chua chu cai va khoang trang, tu 2 ky tu tro len. Vui long nhap lai: ";
     }
 }
 
-std::string promptValidatedCCCD() {
+string promptValidatedCCCD() {
     while (true) {
-        std::string cccd; std::getline(std::cin, cccd);
+        string cccd; getline(cin, cccd);
         if (isValidCCCD(cccd)) return cccd;
-        std::cout << "CCCD khong hop le. CCCD phai gom 12 chu so. Vui long nhap lai: ";
+        cout << "CCCD khong hop le. CCCD phai gom 12 chu so. Vui long nhap lai: ";
     }
 }

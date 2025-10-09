@@ -1,9 +1,9 @@
 #include "CinemaSystem.h"
 #include <algorithm>
-
+using namespace std;
     // === HUY GHE ===
-    int CinemaSystem::findSeatIndexInBooking(const Booking& booking, const std::string& seatCodeUpper) {
-        Node<std::string>* node = booking.bookedSeats.head;
+    int CinemaSystem::findSeatIndexInBooking(const Booking& booking, const string& seatCodeUpper) {
+        Node<string>* node = booking.bookedSeats.head;
         int idx = 0;
         while (node) {
             if (toUpper(node->data) == seatCodeUpper) return idx;
@@ -12,11 +12,11 @@
         return -1;
     }
 
-    bool CinemaSystem::parseSeatCode(const std::string& codeUpper, int& row, int& col) {
+    bool CinemaSystem::parseSeatCode(const string& codeUpper, int& row, int& col) {
         if (codeUpper.length() < 2 || !isalpha(codeUpper[0])) return false;
         for (size_t i = 1; i < codeUpper.length(); ++i) if (!isdigit(codeUpper[i])) return false;
         row = codeUpper[0] - 'A';
-        col = std::stoi(codeUpper.substr(1)) - 1;
+        col = stoi(codeUpper.substr(1)) - 1;
         if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) return false;
         return true;
     }
@@ -24,17 +24,17 @@
 void CinemaSystem::cancelSeat(Customer* customer) {
     while (true) {
         clearScreen();
-        std::cout << "\033[31m===== HUY GHE =====\033[0m\n\n";
+        cout << "\033[31m===== HUY GHE =====\033[0m\n\n";
         if (customer->bookings.isEmpty()) {
-            std::cout << "Ban chua co ve nao de huy.\n";
-            std::cout << "Nhan Enter de quay lai..."; std::cin.ignore();
+            cout << "Ban chua co ve nao de huy.\n";
+            cout << "Nhan Enter de quay lai..."; cin.ignore();
             displayCustomerInfo(customer);
             return;
         }
 
         // Hien thi tat ca cac ve da dat voi index
-        std::cout << "\033[32mCac ve da dat:\033[0m\n";
-        std::cout << "----------------------------------------\n";
+        cout << "\033[32mCac ve da dat:\033[0m\n";
+        cout << "----------------------------------------\n";
         
         // Chuyển LinkedList sang mảng CON TRỎ để sắp xếp và hiển thị
         int bookingCount = customer->bookings.size();
@@ -52,24 +52,24 @@ void CinemaSystem::cancelSeat(Customer* customer) {
         // Hiển thị danh sách vé với index
         for (int i = 0; i < bookingCount; ++i) {
             Booking* booking = bookingsPtrArray[i];
-            std::cout << " \033[31m" << (i + 1) << ".\033[0m Phim: " <<"\033[1;33m "<< booking->movie->title << "\n";
-            std::cout << "\033[0m";
-            std::cout << "    Suat chieu: " << " \033[35m" << formatTime(booking->showtime->time) << "\n";
-            std::cout << "\033[0m";
-            std::cout << "    Ghe: ";
-            Node<std::string>* seatNode = booking->bookedSeats.head;
+            cout << " \033[31m" << (i + 1) << ".\033[0m Phim: " <<"\033[1;33m "<< booking->movie->title << "\n";
+            cout << "\033[0m";
+            cout << "    Suat chieu: " << " \033[35m" << formatTime(booking->showtime->time) << "\n";
+            cout << "\033[0m";
+            cout << "    Ghe: ";
+            Node<string>* seatNode = booking->bookedSeats.head;
             while(seatNode) {
-                std::cout << "\033[1;32m"<< seatNode->data << "\033[0m" << " ";
+                cout << "\033[1;32m"<< seatNode->data << "\033[0m" << " ";
                 seatNode = seatNode->next;
             }
-            std::cout << "(" << booking->bookedSeats.size() << " ghe)\n\n";
+            cout << "(" << booking->bookedSeats.size() << " ghe)\n\n";
         }
 
-        std::cout << "\033[31m0.\033[0m Quay lai\n";
-        std::cout << "----------------------------------------\n";
-        std::cout << "Chon ve muon huy (nhap so thu tu): ";
+        cout << "\033[31m0.\033[0m Quay lai\n";
+        cout << "----------------------------------------\n";
+        cout << "Chon ve muon huy (nhap so thu tu): ";
         
-        std::string choice; std::getline(std::cin, choice);
+        string choice; getline(cin, choice);
         if (choice == "0") {
             delete[] bookingsPtrArray;
             displayCustomerInfo(customer);
@@ -78,15 +78,15 @@ void CinemaSystem::cancelSeat(Customer* customer) {
 
         int ticketIndex;
         try { 
-            ticketIndex = std::stoi(choice); 
+            ticketIndex = stoi(choice); 
         } catch (...) { 
-            std::cout << "Vui long nhap so hop le.\n"; std::cin.ignore();
+            cout << "Vui long nhap so hop le.\n"; cin.ignore();
             delete[] bookingsPtrArray;
             continue; 
         }
 
         if (ticketIndex < 1 || ticketIndex > bookingCount) {
-            std::cout << "Lua chon khong hop le. Vui long nhap lai.\n";std::cin.ignore();
+            cout << "Lua chon khong hop le. Vui long nhap lai.\n";cin.ignore();
             delete[] bookingsPtrArray;
             continue;
         }
@@ -97,20 +97,20 @@ void CinemaSystem::cancelSeat(Customer* customer) {
 
         // Xử lý hủy toàn bộ vé (1 ghế) hoặc chọn ghế (nhiều ghế)
         // ... (Logic tương tự như code cũ, nhưng sử dụng 'selectedBookingPtr->' thay cho 'selectedBooking.')
-        std::string movieTitle = selectedBookingPtr->movie->title;
-        std::string showtimeStr = formatTime(selectedBookingPtr->showtime->time);
-        std::string seatCodeUpper = toUpper(selectedBookingPtr->bookedSeats.head->data);
+        string movieTitle = selectedBookingPtr->movie->title;
+        string showtimeStr = formatTime(selectedBookingPtr->showtime->time);
+        string seatCodeUpper = toUpper(selectedBookingPtr->bookedSeats.head->data);
         // Nếu vé chỉ có 1 ghế, hủy luôn
         if (seatCount == 1) {
-            std::cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (y/n): ";
-            std::string confirm; std::getline(std::cin, confirm);
+            cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (y/n): ";
+            string confirm; getline(cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";std::cin.ignore();
+                cout << "Lua chon khong hop le. Vui long nhap y/n.\n";cin.ignore();
                 delete[] bookingsPtrArray;
                 continue;
             }
             if (tolower((unsigned char)confirm[0]) == 'n') {
-                std::cout << "Da huy thao tac.\n";std::cin.ignore();
+                cout << "Da huy thao tac.\n";cin.ignore();
                 delete[] bookingsPtrArray;
                 continue;
             }
@@ -135,14 +135,14 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             
             // ... (Phần hiển thị kết quả)
             clearScreen();
-            std::cout << "\033[32m===== HUY VE THANH CONG =====\033[0m\n\n";
-            std::cout << "Phim: " << "\033[1;33m"<< movieTitle <<"\033[0m"  << "\n";
-            std::cout << "Suat chieu: " << "\033[1;35m"<< showtimeStr <<"\033[0m" << "\n";
-            std::cout << "\033[0m";
-            std::cout << "Ghe da huy: " << "\033[1;32m" <<seatCodeUpper  <<"\033[0m" <<  "\n";
-            std::cout << "So tien hoan lai: " << 75000 << " VND\n";
-            std::cout << "Ve da duoc xoa khoi danh sach.\n\n";
-            std::cout << "Nhan Enter de quay lai..."; std::cin.ignore();
+            cout << "\033[32m===== HUY VE THANH CONG =====\033[0m\n\n";
+            cout << "Phim: " << "\033[1;33m"<< movieTitle <<"\033[0m"  << "\n";
+            cout << "Suat chieu: " << "\033[1;35m"<< showtimeStr <<"\033[0m" << "\n";
+            cout << "\033[0m";
+            cout << "Ghe da huy: " << "\033[1;32m" <<seatCodeUpper  <<"\033[0m" <<  "\n";
+            cout << "So tien hoan lai: " << 75000 << " VND\n";
+            cout << "Ve da duoc xoa khoi danh sach.\n\n";
+            cout << "Nhan Enter de quay lai..."; cin.ignore();
             delete[] bookingsPtrArray;
             displayCustomerInfo(customer);
             return;
@@ -150,31 +150,31 @@ void CinemaSystem::cancelSeat(Customer* customer) {
         // Nếu vé có nhiều ghế, cho chọn ghế cụ thể
         else {
             clearScreen();
-            std::cout << "\033[1;36m\n";
-            std::cout << "===== CHON GHE CAN HUY =====\n\n";
-            std::cout << "\033[0m";
-            std::cout << "Phim: " << "\033[1;33m"<<selectedBookingPtr->movie->title << "\n";
-            std::cout << "\033[0m";
-            std::cout << "Suat chieu: " << "\033[35m" << formatTime(selectedBookingPtr->showtime->time) << "\n\n";
-            std::cout << "\033[0m";
-            std::cout << "Cac ghe da dat:\n";
+            cout << "\033[1;36m\n";
+            cout << "===== CHON GHE CAN HUY =====\n\n";
+            cout << "\033[0m";
+            cout << "Phim: " << "\033[1;33m"<<selectedBookingPtr->movie->title << "\n";
+            cout << "\033[0m";
+            cout << "Suat chieu: " << "\033[35m" << formatTime(selectedBookingPtr->showtime->time) << "\n\n";
+            cout << "\033[0m";
+            cout << "Cac ghe da dat:\n";
             
             // Hiển thị các ghế với index
-            Node<std::string>* seatNode = selectedBookingPtr->bookedSeats.head;
+            Node<string>* seatNode = selectedBookingPtr->bookedSeats.head;
             int seatIndex = 0;
             while(seatNode) {
-                std::cout << " \033[31m" << (seatIndex + 1) << ".\033[0m " << "\033[1;32m"<< seatNode->data << "\n";
-                std::cout << "\033[0m";
+                cout << " \033[31m" << (seatIndex + 1) << ".\033[0m " << "\033[1;32m"<< seatNode->data << "\n";
+                cout << "\033[0m";
                 seatNode = seatNode->next;
                 seatIndex++;
             }
             
             // ... (Phần chọn ghế, kiểm tra index)
-            std::cout << "\n \033[31m0.\033[0m Quay lai\n";
-            std::cout << "----------------------------------------\n";
-            std::cout << "Chon ghe muon huy (nhap so thu tu): ";
+            cout << "\n \033[31m0.\033[0m Quay lai\n";
+            cout << "----------------------------------------\n";
+            cout << "Chon ghe muon huy (nhap so thu tu): ";
             
-            std::string seatChoice; std::getline(std::cin, seatChoice);
+            string seatChoice; getline(cin, seatChoice);
             if (seatChoice == "0") {
                 delete[] bookingsPtrArray;
                 cancelSeat(customer);
@@ -182,7 +182,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             }
 
             // Parse multiple tokens: indices (1-based) or seat codes (e.g., A1)
-            std::stringstream ss(seatChoice);
+            stringstream ss(seatChoice);
             LinkedList<int> indices;
             auto containsIndex = [&](int v) {
                 Node<int>* cur = indices.head;
@@ -192,15 +192,15 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 }
                 return false;
             };
-            auto toUpperStr = [](std::string s){ for(char& c: s) c = (char)toupper((unsigned char)c); return s; };
-            std::string tok;
+            auto toUpperStr = [](string s){ for(char& c: s) c = (char)toupper((unsigned char)c); return s; };
+            string tok;
             bool anyInvalid = false;
             while (ss >> tok) {
                 // Try as integer
                 bool accepted = false;
                 try {
                     size_t pos = 0;
-                    int asIndex = std::stoi(tok, &pos);
+                    int asIndex = stoi(tok, &pos);
                     if (pos == tok.size() && asIndex >= 1 && asIndex <= seatCount) {
                         if (!containsIndex(asIndex)) indices.add(asIndex);
                         accepted = true;
@@ -209,7 +209,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 if (accepted) continue;
 
                 // Try as seat code
-                std::string codeUpper = toUpperStr(tok);
+                string codeUpper = toUpperStr(tok);
                 int row=-1,col=-1;
                 if (parseSeatCode(codeUpper, row, col)) {
                     int foundIdx = findSeatIndexInBooking(*selectedBookingPtr, codeUpper);
@@ -219,13 +219,13 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                         continue;
                     }
                 }
-                std::cout << "\n[LOI]: \"" << tok << "\" khong phai la so thu tu hop le (1-" << seatCount << ") hoac ma ghe da dat.\n"; // THÔNG BÁO LỖI
+                cout << "\n[LOI]: \"" << tok << "\" khong phai la so thu tu hop le (1-" << seatCount << ") hoac ma ghe da dat.\n"; // THÔNG BÁO LỖI
                 anyInvalid = true;
                 break;
             }
 
             if (anyInvalid) {
-                std::cout << "Nhan Enter de thu lai..."; std::cin.ignore();
+                cout << "Nhan Enter de thu lai..."; cin.ignore();
                 delete[] bookingsPtrArray; 
                 continue; 
             }
@@ -233,32 +233,32 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             if (indices.isEmpty()) { 
                 // Trường hợp người dùng nhập các token hợp lệ nhưng đã bị trùng (đã được thêm vào 'indices') 
                 // hoặc chỉ nhập khoảng trắng/không nhập gì.
-                std::cout << "\n[LOI]: Vui long nhap it nhat mot so thu tu hoac ma ghe de huy.\n";
-                std::cout << "Nhan Enter de thu lai..."; std::cin.ignore();
+                cout << "\n[LOI]: Vui long nhap it nhat mot so thu tu hoac ma ghe de huy.\n";
+                cout << "Nhan Enter de thu lai..."; cin.ignore();
                 delete[] bookingsPtrArray;
                 continue; 
             }
 
             // Build list of codes to cancel for confirmation
-            LinkedList<std::string> toCancelCodes;
+            LinkedList<string> toCancelCodes;
             Node<int>* idxNode = indices.head;
             while (idxNode) {
                 int oneBasedIdx = idxNode->data;
-                Node<std::string>* sn = selectedBookingPtr->bookedSeats.head;
+                Node<string>* sn = selectedBookingPtr->bookedSeats.head;
                 for (int i = 1; i < oneBasedIdx; ++i)
                     sn = sn->next;
                 toCancelCodes.add(toUpperStr(sn->data));
                 idxNode = idxNode->next;
             }
-            std::cout << "\nCac ghe se huy: ";
-            Node<std::string>* cNode = toCancelCodes.head;
+            cout << "\nCac ghe se huy: ";
+            Node<string>* cNode = toCancelCodes.head;
             while (cNode) {
-                std::cout << "\033[1;32m" << cNode->data << "\033[0m" << " ";
+                cout << "\033[1;32m" << cNode->data << "\033[0m" << " ";
                 cNode = cNode->next;
             }
-            std::cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n";
-            std::cout << "Xac nhan (\033[31my\033[0m/\033[32mn\033[0m): ";
-            std::string confirm; std::getline(std::cin, confirm);
+            cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n";
+            cout << "Xac nhan (\033[31my\033[0m/\033[32mn\033[0m): ";
+            string confirm; getline(cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0])!='y' && tolower((unsigned char)confirm[0])!='n')) { delete[] bookingsPtrArray; continue; }
             if (tolower((unsigned char)confirm[0])=='n') { delete[] bookingsPtrArray; continue; }
 
@@ -269,11 +269,11 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             Node<int>* idxNode2 = indices.head;
             while (idxNode2) {
                 int oneBasedIdx = idxNode2->data;
-                Node<std::string>* sn = selectedBookingPtr->bookedSeats.head;
+                Node<string>* sn = selectedBookingPtr->bookedSeats.head;
                 for (int i = 1; i < oneBasedIdx; ++i)
                     sn = sn->next;
 
-                std::string codeUpper = toUpperStr(sn->data);
+                string codeUpper = toUpperStr(sn->data);
                 int pr=-1, pc=-1;
                 if (parseSeatCode(codeUpper, pr, pc)) {
                     selectedBookingPtr->showtime->seats[pr][pc].state = AVAILABLE;
@@ -285,33 +285,33 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             }
             // Show result
             clearScreen();
-            std::cout << "\033[32m===== HUY GHE THANH CONG =====\033[0m\n\n";
-            std::cout << "Phim: \033[1;33m" << selectedBookingPtr->movie->title << "\033[0m\n";
-            std::cout << "Suat chieu: \033[1;35m" << formatTime(selectedBookingPtr->showtime->time) << "\033[0m\n";
-            std::cout << "Cac ghe da huy: ";
-            Node<std::string>* canceledNode = toCancelCodes.head;
+            cout << "\033[32m===== HUY GHE THANH CONG =====\033[0m\n\n";
+            cout << "Phim: \033[1;33m" << selectedBookingPtr->movie->title << "\033[0m\n";
+            cout << "Suat chieu: \033[1;35m" << formatTime(selectedBookingPtr->showtime->time) << "\033[0m\n";
+            cout << "Cac ghe da huy: ";
+            Node<string>* canceledNode = toCancelCodes.head;
             while (canceledNode) {
-                std::cout <<"\033[1;32m"<< canceledNode->data << "\033[0m ";
+                cout <<"\033[1;32m"<< canceledNode->data << "\033[0m ";
                 canceledNode = canceledNode->next;
             }
-            std::cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n\n";
+            cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n\n";
 
             int remaining = selectedBookingPtr->bookedSeats.size();
             if (remaining > 0) {
-                std::cout << "Ghe con lai: ";
-                Node<std::string>* remainingSeatNode = selectedBookingPtr->bookedSeats.head;
-                while (remainingSeatNode) { std::cout << "\033[1;32m"<<remainingSeatNode->data << "\033[0m "; remainingSeatNode = remainingSeatNode->next; }
-                std::cout << "\nSo ghe con lai: \033[1;32m" << remaining << "\033[0m\n";
+                cout << "Ghe con lai: ";
+                Node<string>* remainingSeatNode = selectedBookingPtr->bookedSeats.head;
+                while (remainingSeatNode) { cout << "\033[1;32m"<<remainingSeatNode->data << "\033[0m "; remainingSeatNode = remainingSeatNode->next; }
+                cout << "\nSo ghe con lai: \033[1;32m" << remaining << "\033[0m\n";
             } else {
                 Node<Booking>* nodeToDelete = customer->bookings.head;
                 int indexToDelete = 0;
                 while (nodeToDelete) {
-                    if (&nodeToDelete->data == selectedBookingPtr) { customer->bookings.removeAt(indexToDelete); std::cout << "Ve da duoc xoa khoi danh sach (khong con ghe nao).\n"; break; }
+                    if (&nodeToDelete->data == selectedBookingPtr) { customer->bookings.removeAt(indexToDelete); cout << "Ve da duoc xoa khoi danh sach (khong con ghe nao).\n"; break; }
                     nodeToDelete = nodeToDelete->next; indexToDelete++;
                 }
             }
 
-            std::cout << "\nNhan Enter de quay lai..."; std::cin.ignore();
+            cout << "\nNhan Enter de quay lai..."; cin.ignore();
             delete[] bookingsPtrArray;
             displayCustomerInfo(customer);
             return;
