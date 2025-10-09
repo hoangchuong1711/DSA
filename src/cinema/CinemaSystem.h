@@ -46,6 +46,7 @@ private:
     void processCustomerSearch();
     void displayCustomerInfo(Customer* customer);
     void processMovieSelectionForExistingCustomer(Customer* customer);
+    
     // === HUY GHE ===
     int findSeatIndexInBooking(const Booking& booking, const std::string& seatCodeUpper);
     bool parseSeatCode(const std::string& codeUpper, int& row, int& col);

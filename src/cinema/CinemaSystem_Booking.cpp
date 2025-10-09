@@ -1,27 +1,34 @@
 #include "CinemaSystem.h"
 #include <algorithm>
-
+#include <limits>
     // === Các hàm xử lý logic ===
+    void pressEnterToContinue() {
+    std::cout << "\nNhan Enter de tiep tuc...";
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
     void CinemaSystem::processMovieSelection() {
         while (true) {
             clearScreen();
-            std::cout << "===== CHON PHIM =====\n";
-            std::cout << "1. Sap xep theo ten (A->Z)\n";
-            std::cout << "2. Sap xep theo rating (cao->thap)\n";
-            std::cout << "0. Quay lai\n";
-            std::cout << "Lua chon sap xep: ";
+            std::cout << "\033[1;36mCHON PHIM - CINEMA SYSTEM\033[0m\n";
+    std::cout << "-------------------------------------\n";
+    std::cout << "\033[31m1.\033[0m  Sap xep theo \033[35mTen (A -> Z)\033[0m\n";
+    std::cout << "\033[31m2.\033[0m  Sap xep theo \033[35mRating (cao -> thap)\033[0m\n";
+    std::cout << "\033[31m0.\033[0m  Quay lai\n";
+    std::cout << "-------------------------------------\n";
+    std::cout << "\033[36mNhap lua chon cua ban: \033[0m";
             std::string sortChoice; std::getline(std::cin, sortChoice);
             if (sortChoice == "0") return;
-            if (sortChoice == "2") displayMovieListSortedByRating(); 
-            if(sortChoice=="1") displayMovieList();
+            else if (sortChoice == "2") displayMovieListSortedByRating(); 
+            else if(sortChoice=="1") displayMovieList();
             else {
                 std::cout << "Thong tin khong hop le, vui long nhap lai.\n";
-                std::cin.ignore();
-                continue;
+                pressEnterToContinue();
             }
             while(true){
                 clearCurrentLine();
+                std::cout << "\033[34m";
                 std::cout << "\nChon phim ban muon xem (0 de quay lai): ";
+                std::cout << "\033[0m";
                 std::string line; std::getline(std::cin, line);
                 if (line == "0") return; // back to main menu
                 bool isNumber = !line.empty() && std::all_of(line.begin(), line.end(), ::isdigit);
@@ -55,13 +62,14 @@
         while (true) {
             clearScreen();
             gotoXY(10, 3);
+            std::cout << "\033[1;36m";
             std::cout << "PHIM: " << movie->title << "\n";
             std::cout << "===== VUI LONG CHON SUAT CHIEU =====\n\n";
-
+            std::cout << "\033[0m\n";
             int validShowtimeCount = 0;
             for (int i = 0; i < movie->showtimeCount; ++i) {
                 if (movie->showtimes[i].time > now) {
-                    std::cout << " " << validShowtimeCount + 1 << ". " << formatTime(movie->showtimes[i].time) << "\n";
+                    std::cout << " " << "\033[31m" << validShowtimeCount + 1 << ". " << "\033[0m" << formatTime(movie->showtimes[i].time) << "\n";
                     validShowtimeIndices[validShowtimeCount] = i;
                     validShowtimeCount++;
                 }
@@ -72,8 +80,10 @@
                 return false;
             }
 
-            std::cout << " 0. Quay lai\n";
+            std::cout << " \033[31m0.\033[0m" << "Quay lai\n";
+            std::cout << "\033[34m";
             std::cout << "\nChon suat chieu ban muon xem: ";
+            std::cout << "\033[0m\n";
             std::string line; std::getline(std::cin, line);
             if (line == "0") return false; 
             bool isNumber = !line.empty() && std::all_of(line.begin(), line.end(), ::isdigit);
@@ -187,7 +197,7 @@
             
             // Xác nhận thanh toán
             int totalCost = validSeatCount * 75000;
-            std::cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (y/n): ";
+            std::cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (\033[31my\033[0m/\033[32mn\033[0m): ";
             std::string confirm; std::getline(std::cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
                 std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n"; 
@@ -247,17 +257,25 @@
 
     void CinemaSystem::printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount) {
         clearScreen();
+         std::cout << "\033[1;32m";
         gotoXY(25, 3); std::cout << "====== HOA DON DAT VE ======\n\n";
+        std::cout << "\033[0m\n";
         std::cout << "  Khach hang: " << customer.name << "\n";
         std::cout << "  CCCD:       " << customer.cccd << "\n";
-        std::cout << "  Phim:       " << movie->title << "\n";
-        std::cout << "  Suat chieu: " << formatTime(showtime->time) << "\n";
+        std::cout << "  Phim:       "  << " \033[1;33m"<< movie->title << "\n";
+        std::cout << "\033[0m";
+        std::cout << "  Suat chieu: " << " \033[1;35m" << formatTime(showtime->time) << "\n";
+        std::cout << "\033[0m";
         std::cout << "  Ghe da dat: ";
+        std::cout << "\033[1;32m";
         for (int i = 0; i < seatCount; ++i) std::cout << seatCodes[i] << " ";
+        std::cout << "\033[0m";
         std::cout << "\n";
         std::cout << "  So luong:   " << seatCount << " ve\n";
         std::cout << "  Tong tien:  " << seatCount * 75000 << " VND\n\n";
+        std::cout << "\033[1;32m";
         std::cout << "  CAM ON QUY KHACH!\n\n";
+        std::cout << "\033[0m";
         std::cout << "Nhan Enter de quay lai menu chinh...";
         std::cin.ignore();
     }
@@ -333,7 +351,9 @@
     
     void CinemaSystem::displayCustomerInfo(Customer* customer) {
         clearScreen();
+        std::cout << "\033[1;32m";
         std::cout << "===== THONG TIN KHACH HANG =====\n\n";
+        std::cout << "\033[0m";
         std::cout << "Ten: " << customer->name << "\n";
         std::cout << "CCCD: " << customer->cccd << "\n\n";
         std::cout << "--- Cac ve da dat (da sap xep theo suat chieu moi nhat) ---\n";
@@ -356,12 +376,16 @@
         // In ra từ mảng con trỏ đã sắp xếp
         for (int i = 0; i < bookingCount; ++i) {
             Booking* booking = bookingsPtrArray[i]; // Lấy con trỏ booking
-            std::cout << " > Phim: " << booking->movie->title << "\n";
-            std::cout << "   Suat chieu: " << formatTime(booking->showtime->time) << "\n";
+            std::cout << " > Phim: " << "\033[1;33m"<< booking->movie->title << "\n";
+            std::cout << "\033[0m";
+            std::cout << "   Suat chieu: " << "\033[35m"<<formatTime(booking->showtime->time) << "\n";
+            std::cout << "\033[0m";
             std::cout << "   Ghe: ";
             Node<std::string>* seatNode = booking->bookedSeats.head;
             while(seatNode) {
+                std::cout << "\033[1;32m";
                 std::cout << seatNode->data << " ";
+                std::cout << "\033[0m";
                 seatNode = seatNode->next;
             }
             std::cout << "\n\n";
@@ -372,9 +396,9 @@
 
 
         std::cout << "--------------------------------\n";
-        std::cout << "1. Dat them ghe\n";
-        std::cout << "2. Huy ghe\n";
-        std::cout << "0. Quay lai menu chinh\n";
+        std::cout << "\033[31m1.\033[0m Dat them ghe\n";
+        std::cout << "\033[31m2\033[0m. Huy ghe\n";
+        std::cout << "\033[31m0\033[0m. Quay lai menu chinh\n";
         std::cout << "Lua chon: ";
         std::string line;
         std::getline(std::cin, line);
@@ -390,11 +414,11 @@
     void CinemaSystem::processMovieSelectionForExistingCustomer(Customer* customer) {
         while (true) {
             clearScreen();
-            std::cout << "===== CHON PHIM (DAT THEM) =====\n";
-            std::cout << "1. Sap xep theo ten (A->Z)\n";
-            std::cout << "2. Sap xep theo rating (cao->thap)\n";
-            std::cout << "0. Quay lai\n";
-            std::cout << "Lua chon sap xep: ";
+            std::cout << "\033[1;36m===== CHON PHIM (DAT THEM) =====\033[0m\n";
+            std::cout << "\033[31m1.\033[0m Sap xep theo \033[35mTen (A->Z)\033[0m\n";
+            std::cout << "\033[31m2.\033[0m Sap xep theo \033[35mRating (cao->thap)\033[0m\n";
+            std::cout << "\033[31m0.\033[0m Quay lai\n";
+            std::cout << "\033[34mLua chon sap xep:\033[0m ";
             
             std::string sortChoice;
             std::getline(std::cin, sortChoice);
