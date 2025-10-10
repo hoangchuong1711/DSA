@@ -1,6 +1,6 @@
 #include "CinemaSystem.h"
 #include <algorithm>
-
+using namespace std;
     // === THUẬT TOÁN SẮP XẾP 1: INSERTION SORT (cho danh sách phim) ===
     void CinemaSystem::sortMoviesByTitle() {
         for (int i = 1; i < 5; i++) {
@@ -21,7 +21,7 @@
         while (i <= j) {
             while (arr[i].rating > pivot) i++;      // rating cao đứng trước
             while (arr[j].rating < pivot) j--;      // rating thấp đứng sau
-            if (i <= j) { std::swap(arr[i], arr[j]); i++; j--; }
+            if (i <= j) { swap(arr[i], arr[j]); i++; j--; }
         }
         return i;
     }
