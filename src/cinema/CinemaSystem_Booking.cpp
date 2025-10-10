@@ -2,14 +2,10 @@
 #include <algorithm>
 #include <limits>
     // === Các hàm xử lý logic ===
-    void pressEnterToContinue() {
-    std::cout << "\nNhan Enter de tiep tuc...";
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-    }
     void CinemaSystem::processMovieSelection() {
         while (true) {
             clearScreen();
-            std::cout << "\033[1;36mCHON PHIM - CINEMA SYSTEM\033[0m\n";
+            std::cout << "\033[1;36mCHON PHIM - CINEMA SYSTEM\033[0m\n\n";
     std::cout << "-------------------------------------\n";
     std::cout << "\033[31m1.\033[0m  Sap xep theo \033[35mTen (A -> Z)\033[0m\n";
     std::cout << "\033[31m2.\033[0m  Sap xep theo \033[35mRating (cao -> thap)\033[0m\n";
@@ -22,7 +18,8 @@
             else if(sortChoice=="1") displayMovieList();
             else {
                 std::cout << "Thong tin khong hop le, vui long nhap lai.\n";
-                pressEnterToContinue();
+                std::cin.ignore();
+                continue;
             }
             while(true){
                 clearCurrentLine();
@@ -61,11 +58,10 @@
         int validShowtimeIndices[MAX_SHOWTIMES_PER_MOVIE];
         while (true) {
             clearScreen();
-            gotoXY(10, 3);
             std::cout << "\033[1;36m";
             std::cout << "PHIM: " << movie->title << "\n";
             std::cout << "===== VUI LONG CHON SUAT CHIEU =====\n\n";
-            std::cout << "\033[0m\n";
+            std::cout << "\033[0m";
             int validShowtimeCount = 0;
             for (int i = 0; i < movie->showtimeCount; ++i) {
                 if (movie->showtimes[i].time > now) {
@@ -200,7 +196,7 @@
             std::cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (\033[31my\033[0m/\033[32mn\033[0m): ";
             std::string confirm; std::getline(std::cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n"; 
+                std::cout << "Lua chon khong hop le. Vui long nhap \033[31my\033[0m/033[33mn/033[0m.\n"; 
                 std::cin.ignore();
                 // Xóa đặt tạm nếu không xác nhận
                 clearReservations(*showtime);
@@ -257,8 +253,8 @@
 
     void CinemaSystem::printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount) {
         clearScreen();
-         std::cout << "\033[1;32m";
-        gotoXY(25, 3); std::cout << "====== HOA DON DAT VE ======\n\n";
+        std::cout << "\033[1;32m";
+        std::cout << "====== HOA DON DAT VE ======\n\n";
         std::cout << "\033[0m\n";
         std::cout << "  Khach hang: " << customer.name << "\n";
         std::cout << "  CCCD:       " << customer.cccd << "\n";
@@ -414,7 +410,7 @@
     void CinemaSystem::processMovieSelectionForExistingCustomer(Customer* customer) {
         while (true) {
             clearScreen();
-            std::cout << "\033[1;36m===== CHON PHIM (DAT THEM) =====\033[0m\n";
+            std::cout << "\033[1;36m===== CHON PHIM (DAT THEM) =====\033[0m\n\n";
             std::cout << "\033[31m1.\033[0m Sap xep theo \033[35mTen (A->Z)\033[0m\n";
             std::cout << "\033[31m2.\033[0m Sap xep theo \033[35mRating (cao->thap)\033[0m\n";
             std::cout << "\033[31m0.\033[0m Quay lai\n";

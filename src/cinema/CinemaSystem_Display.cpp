@@ -5,23 +5,23 @@
     void CinemaSystem::displayMainMenu() {
         clearScreen();
         std::cout << "\033[1;36m"; 
-        gotoXY(30, 5); std::cout << "===== MENU RAP CHIEU PHIM =====\n";
+        std::cout << "===== MENU RAP CHIEU PHIM =====\n\n";
         std::cout << "\033[0m"; 
         
-        gotoXY(30, 7); std::cout << "\033[31m" << "1. " << "\033[0m" <<"Chon phim\n";
-        gotoXY(30, 8); std::cout << "\033[31m" << "2. " << "\033[0m" <<"Tim kiem nguoi dat\n";
-        gotoXY(30, 9); std::cout << "\033[31m" << "3. " << "\033[0m" <<"Thoat\n";
+        std::cout << "\033[31m" << "1. " << "\033[0m" <<"Chon phim\n";
+        std::cout << "\033[31m" << "2. " << "\033[0m" <<"Tim kiem nguoi dat\n";
+        std::cout << "\033[31m" << "3. " << "\033[0m" <<"Thoat\n";
 
         std::cout << "\033[36m"; 
-        gotoXY(30, 11); std::cout << "Lua chon cua ban: ";
+        std::cout << "Lua chon cua ban: ";
         std::cout << "\033[0m"; 
     }
 
     void CinemaSystem::displayMovieList() {
         clearScreen();
         std::cout << "\033[1;36m";
-        gotoXY(10, 3); std::cout << "===== DANH SACH PHIM =====\n\n";
-        std::cout << "\033[0m\n";
+        std::cout << "===== DANH SACH PHIM =====\n\n";
+        std::cout << "\033[0m";
         sortMoviesByTitle();
         for (int i = 0; i < 5; ++i) {
             std::cout << " "  << "\033[31m" << i + 1 << ". " << "\033[0m"<< movieList[i].title  << "\n";
@@ -32,7 +32,7 @@
     void CinemaSystem::displayMovieListSortedByRating() {
         clearScreen();
         std::cout << "\033[1;36m";
-        gotoXY(10, 3); std::cout << "===== DANH SACH PHIM (Rating giam dan) =====\n\n";
+        std::cout << "===== DANH SACH PHIM (Rating giam dan) =====\n\n";
         std::cout << "\033[0m\n";
         Movie temp[5];
         for (int i = 0; i < 5; ++i) temp[i] = movieList[i];
@@ -48,9 +48,9 @@
     void CinemaSystem::displaySeatMap(const std::string& movieTitle, Showtime& showtime ) {
         clearScreen();
         std::cout << "\033[1;36m";
-        gotoXY(20, 2); std::cout << "SO DO GHE - Phim: " << movieTitle << "\n";
-        gotoXY(20, 3); std::cout << "Suat chieu: " << formatTime(showtime.time) << "\n";
-        gotoXY(30, 5); std::cout << "--- MAN HINH ---\n\n";
+        std::cout << "SO DO GHE - Phim: " << movieTitle << "\n";
+        std::cout << "Suat chieu: " << formatTime(showtime.time) << "\n\n";
+        gotoXY(15, 5); std::cout << "--- MAN HINH ---\n\n";
         std::cout << "\033[0m\n";
         for (int i = 0; i < SEAT_ROWS; ++i) {
             std::cout << " " << (char)('A' + i) << " ";

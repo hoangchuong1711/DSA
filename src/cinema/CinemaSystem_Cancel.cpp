@@ -102,10 +102,10 @@ void CinemaSystem::cancelSeat(Customer* customer) {
         std::string seatCodeUpper = toUpper(selectedBookingPtr->bookedSeats.head->data);
         // Nếu vé chỉ có 1 ghế, hủy luôn
         if (seatCount == 1) {
-            std::cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (y/n): ";
+            std::cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (\033[32my\033[0m/\033[31mn\033[0m): ";
             std::string confirm; std::getline(std::cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                std::cout << "Lua chon khong hop le. Vui long nhap y/n.\n";std::cin.ignore();
+                std::cout << "Lua chon khong hop le. Vui long nhap \033[32my\033[0m/\033[31mn\033[0m.\n";std::cin.ignore();
                 delete[] bookingsPtrArray;
                 continue;
             }
