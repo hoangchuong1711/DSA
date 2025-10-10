@@ -2,7 +2,6 @@
 #define MODELS_H
 
 #include <string>
-#include <ctime>
 #include "linkedList.h"
 
 // Các hằng số cho dễ quản lý

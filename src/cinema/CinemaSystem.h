@@ -14,7 +14,7 @@ public:
     void run();
 
 private:
-    Movie movieList[5];
+    LinkedList<Movie> movieList;
     HashTable customerTable;
 
     // ===== HÀM KHỞI TẠO DỮ LIỆU =====
@@ -22,9 +22,9 @@ private:
     time_t createTodayShowtime(int hour, int minute);
 
     // ===== HÀM SẮP XẾP =====
-    void sortMoviesByTitle();
-    int partitionByRating(Movie arr[], int left, int right);
-    void quickSortMoviesByRating(Movie arr[], int left, int right);
+    void sortMoviesByTitle();             // Sắp xếp tên (A-Z)
+    void sortMoviesByRatingDesc();
+    void quickSortMovieByRaing();        // Sắp xếp rating giảm dần
 
     // ===== HÀM MERGE SORT =====
     bool compareBookingPtrs(const Booking* a, const Booking* b);

@@ -3,33 +3,55 @@
 using namespace std;
     // === THUẬT TOÁN SẮP XẾP 1: INSERTION SORT (cho danh sách phim) ===
     void CinemaSystem::sortMoviesByTitle() {
-        for (int i = 1; i < 5; i++) {
-            Movie key = movieList[i];
-            int j = i - 1;
-            while (j >= 0 && movieList[j].title > key.title) {
-                movieList[j + 1] = movieList[j];
-                j = j - 1;
+        if (!movieList.head || !movieList.head->next) return;
+        Node<Movie>* i = movieList.head->next;
+        while (i) {
+            Movie key = i->data;
+            Node<Movie>* j = i->prev;
+            while (j && j->data.title > key.title) {
+                j->next->data = j->data;
+                j = j->prev;
             }
-            movieList[j + 1] = key;
+            if (j)
+                j->next->data = key;
+            else
+                movieList.head->data = key;
+            i = i->next;
         }
     }
 
     // === THUẬT TOÁN SẮP XẾP 3: QUICK SORT (sắp xếp phim theo rating giảm dần) ===
-    int CinemaSystem::partitionByRating(Movie arr[], int left, int right) {
-        double pivot = arr[(left + right) / 2].rating; // pivot rating
-        int i = left, j = right;
-        while (i <= j) {
-            while (arr[i].rating > pivot) i++;      // rating cao đứng trước
-            while (arr[j].rating < pivot) j--;      // rating thấp đứng sau
-            if (i <= j) { swap(arr[i], arr[j]); i++; j--; }
+    void CinemaSystem::sortMoviesByRatingDesc() {
+        if (!movieList.head || !movieList.head->next) return;
+
+        for (Node<Movie>* i = movieList.head; i; i = i->next) {
+            Node<Movie>* maxNode = i;
+            for (Node<Movie>* j = i->next; j; j = j->next) {
+                if (j->data.rating > maxNode->data.rating)
+                    maxNode = j;
+            }
+            if (maxNode != i)
+                std::swap(i->data, maxNode->data);
         }
-        return i;
     }
-    void CinemaSystem::quickSortMoviesByRating(Movie arr[], int left, int right) {
-        if (left >= right) return;
-        int idx = partitionByRating(arr, left, right);
-        if (left < idx - 1) quickSortMoviesByRating(arr, left, idx - 1);
-        if (idx < right) quickSortMoviesByRating(arr, idx, right);
+    void CinemaSystem::quickSortMovieByRaing() {
+        clearScreen();
+        std::cout << "\033[1;36m";
+        std::cout << "===== DANH SACH PHIM (Rating giam dan) =====\n\n";
+        std::cout << "\033[0m";
+
+        LinkedList<Movie> sortedList = movieList;
+        sortMoviesByRatingDesc(); // hoặc: gọi riêng cho sortedList nếu tách ra
+
+        int index = 1;
+        Node<Movie>* current = sortedList.head;
+        while (current) {
+            std::cout << " " << "\033[31m" << index++ << ". \033[0m"
+                    << current->data.title << " (" << current->data.rating << ")\n";
+            current = current->next;
+        }
+
+        std::cout << "\n\033[36m0. Quay lai\033[0m\n";
     }
     // Thêm hàm so sánh cho các con trỏ Booking
     bool CinemaSystem::compareBookingPtrs(const Booking* a, const Booking* b) {

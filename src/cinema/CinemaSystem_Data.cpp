@@ -13,21 +13,34 @@
 
     void CinemaSystem::initializeMovies() {
         time_t showtimes[] = {
-            createTodayShowtime(23, 59), createTodayShowtime(14, 30),
-            createTodayShowtime(23, 30), createTodayShowtime(23, 15)
+            createTodayShowtime(9, 0),
+            createTodayShowtime(14, 30),
+            createTodayShowtime(18, 0),
+            createTodayShowtime(21, 15)
         };
-        int numShowtimes = 4;
-        const char* titles[] = {
-            "DAO KIEM VUNG DAT QUY", "DORAEMON: NOBITA VA BAN GIAO HUONG",
-            "LAT MAT 7: MOT DIEU UOC", "HANH TINH KHI: VUONG QUOC MOI", "TAROT"
+
+        Movie movies[] = {
+            {"DAO KIEM VUNG DAT QUY", 7.6},
+            {"DORAEMON: NOBITA VA BAN GIAO HUONG", 8.3},
+            {"LAT MAT 7: MOT DIEU UOC", 6.8},
+            {"HANH TINH KHI: VUONG QUOC MOI", 8.0},
+            {"TAROT", 5.9},
+            {"TAM QUOC DIEN NGHIA", 8.7} // 👉 thêm phim chỉ cần thêm dòng này
         };
-        double ratings[] = {7.6, 8.3, 6.8, 8.0, 5.9};
-        for (int i = 0; i < 5; ++i) {
-            movieList[i].title = titles[i];
-            movieList[i].rating = ratings[i];
+
+        int numMovies = sizeof(movies) / sizeof(movies[0]);
+        int numShowtimes = sizeof(showtimes) / sizeof(showtimes[0]);
+
+        for (int i = 0; i < numMovies; ++i) {
+            Movie m;
+            m.title = movies[i].title;
+            m.rating = movies[i].rating;
+            m.showtimeCount = numShowtimes;
+
             for (int j = 0; j < numShowtimes; ++j) {
-                movieList[i].showtimes[j].time = showtimes[j];
+                m.showtimes[j].time = showtimes[j];
             }
-            movieList[i].showtimeCount = numShowtimes;
+
+            movieList.add(m); // LinkedList<Movie> movieList;
         }
     }

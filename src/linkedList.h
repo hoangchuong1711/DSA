@@ -32,6 +32,11 @@ struct LinkedList {
         listSize++;
     }
 
+    T* getData(int index) const {
+        Node<T>* node = getNode(index);
+        return node ? &node->data : nullptr;
+    }
+
     Node<T>* getNode(int index) const {
         if (index < 0 || index >= listSize) return nullptr;
 

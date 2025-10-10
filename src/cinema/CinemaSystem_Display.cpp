@@ -21,27 +21,48 @@ using namespace std;
         std::cout << "\033[1;36m";
         std::cout << "===== DANH SACH PHIM =====\n\n";
         std::cout << "\033[0m";
-        sortMoviesByTitle();
-        for (int i = 0; i < 5; ++i) {
-            cout << " "  << "\033[31m" << i + 1 << ". " << "\033[0m"<< movieList[i].title  << "\n";
+
+        sortMoviesByTitle(); // nếu hàm này đã hỗ trợ LinkedList, giữ lại
+
+        int index = 1;
+        Node<Movie>* current = movieList.head;
+        while (current) {
+            std::cout << " " << "\033[31m" << index++ << ". " << "\033[0m"
+                    << current->data.title << "\n";
+            current = current->next;
         }
-        cout << "\n\033[36m0. Quay lai\033[0m\n";
+
+        std::cout << "\n\033[36m0. Quay lai\033[0m\n";
     }
 
     void CinemaSystem::displayMovieListSortedByRating() {
         clearScreen();
         std::cout << "\033[1;36m";
         std::cout << "===== DANH SACH PHIM (Rating giam dan) =====\n\n";
-        std::cout << "\033[0m\n";
-        Movie temp[5];
-        for (int i = 0; i < 5; ++i) temp[i] = movieList[i];
-        quickSortMoviesByRating(temp, 0, 4);
-        for (int i = 0; i < 5; ++i) {
-            cout << " "  << "\033[31m" << i + 1 << ". " << "\033[0m" << temp[i].title << " (" << temp[i].rating << ")\n";
+        std::cout << "\033[0m";
+
+        LinkedList<Movie> sortedList = movieList;
+
+        Node<Movie>* i = sortedList.head;
+        while (i) {
+            Node<Movie>* j = i->next;
+            while (j) {
+                if (i->data.rating < j->data.rating)
+                    std::swap(i->data, j->data);
+                j = j->next;
+            }
+            i = i->next;
         }
-        cout << "\n\033[36m0. Quay lai\033[0m\n";
-        // Copy back selection order to main list so index mapping is consistent when user picks
-        for (int i = 0; i < 5; ++i) movieList[i] = temp[i];
+
+        int index = 1;
+        Node<Movie>* current = sortedList.head;
+        while (current) {
+            std::cout << " " << "\033[31m" << index++ << ". " << "\033[0m"
+                    << current->data.title << " (" << current->data.rating << ")\n";
+            current = current->next;
+        }
+
+        std::cout << "\n\033[36m0. Quay lai\033[0m\n";
     }
 
     void CinemaSystem::displaySeatMap(const string& movieTitle, Showtime& showtime ) {

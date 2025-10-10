@@ -42,12 +42,15 @@ using namespace std;
                         continue;
                     }
                 }
-                int movieIndex= stoi(line);
-                if (movieIndex > 0 && movieIndex <= 5) {
-                    bool booked = processShowtimeSelection(&movieList[movieIndex - 1], nullptr);
-                    if (booked) return; 
+                int movieIndex = stoi(line);
+                if (movieIndex > 0 && movieIndex <= movieList.size()) {
+                    Node<Movie>* node = movieList.getNode(movieIndex - 1);
+                    if (node) {
+                        bool booked = processShowtimeSelection(&node->data, nullptr);
+                        if (booked) return;
+                    }
                     continue;
-                } 
+                }
                 
             }
         }
@@ -458,10 +461,15 @@ using namespace std;
                 }
 
                 int movieIndex = stoi(line);
-                bool booked = processShowtimeSelection(&movieList[movieIndex - 1], customer);
-                if (booked) {
-                    displayCustomerInfo(customer);
-                    return; // về menu khách hàng sau khi đặt xong
+                Movie* movie = movieList.getData(movieIndex - 1);
+                if (movie) {
+                    bool booked = processShowtimeSelection(movie, customer);
+                    if (booked) {
+                        displayCustomerInfo(customer);
+                        return;
+                    }
+                } else {
+                    cout << "Phim không hợp lệ!\n";
                 }
 
                 // nếu người dùng chọn 0 ở bước chọn suất chiếu -> quay lại chọn phim
