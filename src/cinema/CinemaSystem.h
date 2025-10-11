@@ -35,6 +35,7 @@ private:
     void displayMainMenu();
     void displayMovieList();
     void displayMovieListSortedByRating();
+    void displayMoviesBySortChoice(const std::string& sortChoice);
     void displaySeatMap(const std::string& movieTitle, Showtime& showtime);
     void displayBookingList(Booking** arr, int count);
     void printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount);

@@ -65,6 +65,14 @@ using namespace std;
         std::cout << "\n\033[36m0. Quay lai\033[0m\n";
     }
 
+    void CinemaSystem::displayMoviesBySortChoice(const string& sortChoice) {
+        clearScreen();
+        if (sortChoice == "1")
+            displayMovieList();
+        else if (sortChoice == "2")
+            displayMovieListSortedByRating();
+    }
+
     void CinemaSystem::displaySeatMap(const string& movieTitle, Showtime& showtime ) {
         clearScreen();
 

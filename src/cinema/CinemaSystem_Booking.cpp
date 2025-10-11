@@ -48,6 +48,7 @@ using namespace std;
                     if (node) {
                         bool booked = processShowtimeSelection(&node->data, nullptr);
                         if (booked) return;
+                        else displayMoviesBySortChoice(sortChoice);
                     }
                     continue;
                 }
@@ -58,6 +59,10 @@ using namespace std;
     
     bool CinemaSystem::processShowtimeSelection(Movie* movie, Customer* existingCustomer) {
         time_t now = time(0);
+        tm localNowTm;
+        localtime_s(&localNowTm, &now);
+
+        int selectedDayOffset = 0; // 0 = hôm nay, 1 = ngày mai
         int validShowtimeIndices[MAX_SHOWTIMES_PER_MOVIE];
         while (true) {
             clearScreen();
@@ -65,37 +70,88 @@ using namespace std;
             cout << "PHIM: " << movie->title << "\n";
             cout << "===== VUI LONG CHON SUAT CHIEU =====\n\n";
             cout << "\033[0m";
-            int validShowtimeCount = 0;
+
+            // ==== Tính ngày hôm nay và ngày mai ====
+            tm today = localNowTm;
+            tm tomorrow = localNowTm;
+            tomorrow.tm_mday += 1;
+            mktime(&tomorrow);
+
+            char todayStr[20], tomorrowStr[20];
+            strftime(todayStr, sizeof(todayStr), "%d/%m/%Y", &today);
+            strftime(tomorrowStr, sizeof(tomorrowStr), "%d/%m/%Y", &tomorrow);
+
+            cout << "\t";
+            if (selectedDayOffset == 0)
+                cout << "\033[1;33mHom nay\033[0m";
+            else
+                cout << "Hom nay";
+
+            cout << "\t\t\t";
+            if (selectedDayOffset == 1)
+                cout << "\033[1;33mNgay mai\033[0m";
+            else
+                cout << "Ngay mai";
+
+            cout << "\n\t" << todayStr << "\t\t" << tomorrowStr << "\n\n";
+            int validCount = 0;
+
+            // Tính ngày bắt đầu và kết thúc
+            tm targetTm = localNowTm;
+            targetTm.tm_hour = 0;
+            targetTm.tm_min = 0;
+            targetTm.tm_sec = 0;
+            targetTm.tm_mday += selectedDayOffset;
+            time_t targetStart = mktime(&targetTm);
+
+            tm nextTm = targetTm;
+            nextTm.tm_mday += 1;
+            time_t targetEnd = mktime(&nextTm);
+
             for (int i = 0; i < movie->showtimeCount; ++i) {
-                if (movie->showtimes[i].time > now) {
-                    cout << " " << "\033[31m" << validShowtimeCount + 1 << ". " << "\033[0m" << formatTime(movie->showtimes[i].time) << "\n";
-                    validShowtimeIndices[validShowtimeCount] = i;
-                    validShowtimeCount++;
+                time_t st = movie->showtimes[i].time;
+
+                if (st >= targetStart && st < targetEnd) {
+                    if (selectedDayOffset == 0 && st <= now)
+                        continue; // bỏ qua suất chiếu đã qua nếu là hôm nay
+
+                    cout << " " << "\033[31m" << validCount + 1 << ". \033[0m"
+                        << formatTime(st) << "\n";
+                    validShowtimeIndices[validCount] = i;
+                    validCount++;
                 }
             }
 
-            if (validShowtimeCount == 0) {
-                cout << "Phim nay da het cac suat chieu trong hom nay.\n";
-                return false;
-            }
+            if (validCount == 0)
+                cout << "Khong co suat chieu nao cho ngay nay.\n";
 
-            cout << " \033[31m0.\033[0m" << "Quay lai\n";
-            cout << "\033[34m";
-            cout << "\nChon suat chieu ban muon xem: ";
-            cout << "\033[0m\n";
-            string line; getline(cin, line);
-            if (line == "0") return false; 
-            bool isNumber = !line.empty() && all_of(line.begin(), line.end(), ::isdigit);
-            if (!isNumber || stoi(line)<0 || stoi(line)>validShowtimeCount) { 
-                cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.\n"; cin.ignore();continue; 
-            }
-            int showtimeChoice = stoi(line);
-            if (showtimeChoice > 0 && showtimeChoice <= validShowtimeCount) {
-                int actualShowtimeIndex = validShowtimeIndices[showtimeChoice - 1];
-                bool bookedNow = handleBooking(movie, &movie->showtimes[actualShowtimeIndex], existingCustomer);
-                if (bookedNow) return true; 
+            cout << "\n \033[31mn.\033[0m ";
+            if (selectedDayOffset == 0)
+                cout << "Ngay tiep theo\n";
+            else
+                cout << "Ngay truoc\n";
+
+            cout << " \033[31m0.\033[0m Quay lai\n";
+
+            cout << "\033[34m\nChon suat chieu (hoac 'n' de chuyen ngay): \033[0m";
+            string line;
+            getline(cin, line);
+
+            if (line == "0") return false;
+            if (line == "n" || line == "N") {
+                selectedDayOffset = 1 - selectedDayOffset; // đảo qua lại giữa hôm nay và ngày mai
                 continue;
-            } 
+            }
+            bool isNumber = !line.empty() && all_of(line.begin(), line.end(), ::isdigit);
+            if (!isNumber || stoi(line) < 1 || stoi(line) > validCount) {
+                cout << "Thong tin khong hop le. Nhan Enter de nhap lai.";
+                cin.ignore();
+                continue;
+            }
+            int choice = stoi(line);
+            int actualIndex = validShowtimeIndices[choice - 1];
+            bool booked = handleBooking(movie, &movie->showtimes[actualIndex], existingCustomer);
+            if (booked) return true;
         }
     }
     
@@ -146,27 +202,26 @@ using namespace std;
                 const string& code = seatCodes[i];
                 
                 if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
-                    cout << "Ma ghe '" << code << "' khong hop le.\n"; 
-                    cin.ignore();
+                    cout << "Ma ghe '" << code << "' khong hop le.\n";                
                     allSeatsValid = false; 
                     break;
                 }
                 
                 int row = code[0] - 'A', col = stoi(code.substr(1)) - 1;
                 if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
-                    cout << "Ma ghe '" << code << "' khong ton tai.\n"; cin.ignore();
+                    cout << "Ma ghe '" << code << "' khong ton tai.\n"; 
                     allSeatsValid = false; 
                     break;
                 }
                 
                 Seat& seat = showtime->seats[row][col];
                 if (seat.state == BOOKED) {
-                    cout << "Ghe '" << code << "' da co nguoi dat. Vui long nhap lai danh sach ghe.\n"; cin.ignore();
+                    cout << "Ghe '" << code << "' da co nguoi dat. Vui long nhap lai danh sach ghe.\n"; 
                     allSeatsValid = false; 
                     break;
                 }
                 if (seat.state == RESERVED && seat.reservedByCCCD != customerCCCD) {
-                    cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; cin.ignore();
+                    cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; 
                     allSeatsValid = false; 
                     break;
                 }

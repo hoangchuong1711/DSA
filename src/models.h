@@ -7,7 +7,7 @@
 // Các hằng số cho dễ quản lý
 const int SEAT_ROWS = 5;
 const int SEAT_COLS = 10;
-const int MAX_SHOWTIMES_PER_MOVIE = 4; // Mỗi phim có tối đa 4 suất chiếu
+const int MAX_SHOWTIMES_PER_MOVIE = 8; // Mỗi phim có tối đa 8 suất chiếu
 
 // Enum định nghĩa trạng thái ghế
 enum SeatState {
