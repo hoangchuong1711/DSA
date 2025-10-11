@@ -2,7 +2,7 @@
 #include <algorithm>
 using namespace std;
 
-    // === Các hàm hiển thị giao diện ===
+    // Các hàm hiển thị giao diện 
     void CinemaSystem::displayMainMenu() {
         clearScreen();
         std::cout << "\033[1;36m"; 
@@ -128,7 +128,7 @@ using namespace std;
         std::cout << "\033[1;36m";
         std::cout << "SO DO GHE - Phim: " << movieTitle << "\n";
         std::cout << "Suat chieu: " << formatTime(showtime.time) << "\n\n";
-        gotoXY(15, 5); std::cout << "--- MAN HINH ---\n\n";
+        gotoXY(14, 5); std::cout << "--- MAN HINH ---\n\n";
         std::cout << "\033[0m\n";
 
         for (int i = 0; i < SEAT_ROWS; ++i) {

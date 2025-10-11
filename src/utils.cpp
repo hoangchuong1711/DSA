@@ -1,12 +1,12 @@
 #include "utils.h"
 using namespace std;
-// ====== Các hằng số ======
+// Các hằng số 
 const int COLOR_GREEN = 10;   // Ghế trống
 const int COLOR_GRAY = 8;     // Ghế đã đặt tạm
 const int COLOR_ORANGE = 6;   // Ghế đã thanh toán
 const int COLOR_RED = 12;     // Ghế đã đặt bởi người khác
 
-// ====== Định nghĩa hàm ======
+// Định nghĩa hàm 
 void gotoXY(int x, int y) {
     COORD coord;
     coord.X = x;
@@ -51,7 +51,7 @@ string formatTime(time_t t) {
     return string(buffer);
 }
 
-// ====== Validation helpers ======
+// Hàm in văn bản với gói chữ 
 string trim(const string& s) {
     size_t start = 0; 
     while (start < s.size() && isspace((unsigned char)s[start])) start++;

@@ -10,13 +10,13 @@
 #include <windows.h>
 #include <regex>
 
-// ====== Khai báo hằng số màu ======
+// Khai báo hằng số màu 
 extern const int COLOR_GREEN;
 extern const int COLOR_GRAY;
 extern const int COLOR_ORANGE;
 extern const int COLOR_RED;
 
-// ====== Khai báo hàm ======
+// Khai báo hàm 
 void gotoXY(int x, int y);
 void clearScreen();
 void clearCurrentLine();

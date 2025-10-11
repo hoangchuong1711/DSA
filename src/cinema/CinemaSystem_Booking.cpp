@@ -14,8 +14,8 @@ using namespace std;
             string sortChoice; getline(cin, sortChoice);
 
             if (sortChoice == "0") return;
-            else if (sortChoice == "2") displayMovieListSortedByRating(); 
             else if(sortChoice=="1") displayMovieList();
+            else if (sortChoice == "2") displayMovieListSortedByRating(); 
             else {
                 cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.\n";
                 cin.ignore();
@@ -23,11 +23,9 @@ using namespace std;
             }
             while(true){
                 clearCurrentLine();
-                cout << "\033[34m";
-                cout << "\nChon phim ban muon xem (0 de quay lai): ";
-                cout << "\033[0m";
+                cout << "\n\033[34mChon phim ban muon xem (0 de quay lai):\033[0m ";
                 string line; getline(cin, line);
-                if (line == "0") return; // back to main menu
+                if (line == "0") return; // quay lại menu chính
                 bool isNumber = !line.empty() && all_of(line.begin(), line.end(), ::isdigit);
                 if(!isNumber || stoi(line) < 0 || stoi(line) > 5) { 
                     cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.";
@@ -52,7 +50,6 @@ using namespace std;
                     }
                     continue;
                 }
-                
             }
         }
     }
@@ -61,27 +58,21 @@ using namespace std;
         time_t now = time(0);
         tm localNowTm;
         localtime_s(&localNowTm, &now);
-
         int selectedDayOffset = 0; // 0 = hôm nay, 1 = ngày mai
         int validShowtimeIndices[MAX_SHOWTIMES_PER_MOVIE];
         while (true) {
             clearScreen();
             // Hiển thị chi tiết phim
             displayMovieDetails(*movie);
-            cout << "\033[1;36m";
-            
-            cout << "===== VUI LONG CHON SUAT CHIEU =====\n\n";
-            cout << "\033[0m";
-            // ==== Tính ngày hôm nay và ngày mai ====
+            cout << "\033[1;36m===== VUI LONG CHON SUAT CHIEU =====\033[0m\n\n";
+            // Tính ngày hôm nay và ngày mai 
             tm today = localNowTm;
             tm tomorrow = localNowTm;
             tomorrow.tm_mday += 1;
             mktime(&tomorrow);
-
             char todayStr[20], tomorrowStr[20];
             strftime(todayStr, sizeof(todayStr), "%d/%m/%Y", &today);
             strftime(tomorrowStr, sizeof(tomorrowStr), "%d/%m/%Y", &tomorrow);
-
             cout << "\t";
             if (selectedDayOffset == 0)
                 cout << "\033[1;33mHom nay\033[0m";
@@ -111,7 +102,6 @@ using namespace std;
 
             for (int i = 0; i < movie->showtimeCount; ++i) {
                 time_t st = movie->showtimes[i].time;
-
                 if (st >= targetStart && st < targetEnd) {
                     if (selectedDayOffset == 0 && st <= now)
                         continue; // bỏ qua suất chiếu đã qua nếu là hôm nay
@@ -175,6 +165,7 @@ using namespace std;
             string seatCodes[MAX_SEATS_PER_BOOKING];
             int seatCount = 0;
             stringstream ss(toUpper(seatInput));
+            
             // Dùng mảng đã parse để kiểm tra trùng lặp
             auto isDuplicate = [&](const string& checkCode, int currentCount) -> bool {
                 for(int k = 0; k < currentCount; ++k) {
@@ -315,7 +306,7 @@ using namespace std;
         while (true) {
             clearScreen();
             
-            // Check if customer table is completely empty
+            // Kiểm tra nếu chỗ khách hàng trống
             bool isCustomerTableEmpty  = customerTable.isEmpty();           
             if (isCustomerTableEmpty ) {
                 cout << "===== TIM KIEM KHACH HANG =====\n\n";
@@ -349,7 +340,7 @@ using namespace std;
                 cout << "Nhap CCCD (12 chu so, 0 de quay lai): ";
                 string cccd; 
                 getline(cin, cccd);
-                if (cccd == "0") continue; // go back to name input
+                if (cccd == "0") continue; // quay lại nhập tên
                 if (!isValidCCCD(cccd)) { cout << "CCCD khong hop le.\n";cin.ignore(); continue; }
                 auto foundByCCCD = customerTable.get(cccd);
                 if (foundByCCCD.has_value()) { displayCustomerInfo(*foundByCCCD); return; }
@@ -362,7 +353,7 @@ using namespace std;
     void CinemaSystem::processMovieSelectionForExistingCustomer(Customer* customer) {
         while (true) {
             clearScreen();
-            cout << "\033[1;36m===== CHON PHIM (DAT THEM) =====\033[0m\n";
+            cout << "\033[1;36m===== CHON PHIM (DAT THEM) =====\033[0m\n\n";
             cout << "\033[31m1.\033[0m Sap xep theo \033[35mTen (A->Z)\033[0m\n";
             cout << "\033[31m2.\033[0m Sap xep theo \033[35mRating (cao->thap)\033[0m\n";
             cout << "\033[31m0.\033[0m Quay lai\n";
@@ -420,7 +411,6 @@ using namespace std;
                 } else {
                     cout << "Phim không hợp lệ!\n";
                 }
-
                 // nếu người dùng chọn 0 ở bước chọn suất chiếu -> quay lại chọn phim
                 continue;
             }

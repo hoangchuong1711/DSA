@@ -1,7 +1,7 @@
 #include "CinemaSystem.h"
 #include <algorithm>
 using namespace std;
-    // === THUẬT TOÁN SẮP XẾP 1: INSERTION SORT (cho danh sách phim) ===
+    //INSERTION SORT (cho danh sách phim)
     void CinemaSystem::sortMoviesByTitle() {
         if (!movieList.head || !movieList.head->next) return;
         Node<Movie>* i = movieList.head->next;
@@ -20,7 +20,7 @@ using namespace std;
         }
     }
 
-    // === THUẬT TOÁN SẮP XẾP 3: QUICK SORT (sắp xếp phim theo rating giảm dần) ===
+    //THUẬT TOÁN SẮP XẾP 3: QUICK SORT (sắp xếp phim theo rating giảm dần)
     void CinemaSystem::sortMoviesByRatingDesc() {
         if (!movieList.head || !movieList.head->next) return;
 
@@ -58,7 +58,7 @@ using namespace std;
     // Sắp xếp theo thời gian suất chiếu tăng dần (gần nhất trước)
     return a->showtime->time < b->showtime->time; 
     }
-    // === THUẬT TOÁN SẮP XẾP 2: MERGE SORT (cho lịch sử đặt vé) ===
+    // THUẬT TOÁN SẮP XẾP 2: MERGE SORT (cho lịch sử đặt vé)
     // Hàm trộn hai mảng con đã sắp xếp
     void CinemaSystem::mergeBookingPtrs(Booking* arr[], int left, int mid, int right) {
         int n1 = mid - left + 1;

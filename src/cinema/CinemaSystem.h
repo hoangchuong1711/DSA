@@ -17,21 +17,21 @@ private:
     LinkedList<Movie> movieList;
     HashTable customerTable;
 
-    // ===== HÀM KHỞI TẠO DỮ LIỆU =====
+    // HÀM KHỞI TẠO DỮ LIỆU
     void initializeMovies();
     time_t createTodayShowtime(int hour, int minute);
 
-    // ===== HÀM SẮP XẾP =====
+    // HÀM SẮP XẾP
     void sortMoviesByTitle();             // Sắp xếp tên (A-Z)
     void sortMoviesByRatingDesc();
     void quickSortMovieByRaing();        // Sắp xếp rating giảm dần
 
-    // ===== HÀM MERGE SORT =====
+    // HÀM MERGE SORT
     bool compareBookingPtrs(const Booking* a, const Booking* b);
     void mergeBookingPtrs(Booking* arr[], int left, int mid, int right);
     void mergeSortBookingPtrs(Booking* arr[], int left, int right);
 
-    // ===== HIỂN THỊ GIAO DIỆN =====
+    // HIỂN THỊ GIAO DIỆN
     void displayMainMenu();
     void displayMovieList();
     void displayMovieListSortedByRating();
@@ -43,14 +43,14 @@ private:
     void displayCustomerInfo(Customer* customer);
     void displayMovieDetails(const Movie& movie);
 
-    // ===== XỬ LÝ NGHIỆP VỤ =====
+    // XỬ LÝ NGHIỆP VỤ 
     void processMovieSelection();
     bool processShowtimeSelection(Movie* movie, Customer* existingCustomer);
     bool handleBooking(Movie* movie, Showtime* showtime, Customer* existingCustomer); 
     void processCustomerSearch();
     void processMovieSelectionForExistingCustomer(Customer* customer);
     
-    // === HUY GHE ===
+    // HUY GHE 
     int findSeatIndexInBooking(const Booking& booking, const std::string& seatCodeUpper);
     bool parseSeatCode(const std::string& codeUpper, int& row, int& col);
     void cancelSeat(Customer* customer);

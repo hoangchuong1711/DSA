@@ -1,7 +1,7 @@
 #include "CinemaSystem.h"
 #include <algorithm>
 using namespace std;
-    // === HUY GHE ===
+    // Hủy Ghế
     int CinemaSystem::findSeatIndexInBooking(const Booking& booking, const string& seatCodeUpper) {
         Node<string>* node = booking.bookedSeats.head;
         int idx = 0;
@@ -152,7 +152,6 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 return;
             }
 
-            // Parse multiple tokens: indices (1-based) or seat codes (e.g., A1)
             stringstream ss(seatChoice);
             LinkedList<int> indices;
 
@@ -160,7 +159,6 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             string tok;
             bool anyInvalid = false;
             while (ss >> tok) {
-                // Try as integer
                 bool accepted = false;
                 try {
                     size_t pos = 0;
@@ -172,17 +170,6 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 } catch (...) {}
                 if (accepted) continue;
 
-                // Try as seat code
-                string codeUpper = toUpperStr(tok);
-                int row=-1,col=-1;
-                if (parseSeatCode(codeUpper, row, col)) {
-                    int foundIdx = findSeatIndexInBooking(*selectedBookingPtr, codeUpper);
-                    if (foundIdx != -1) {
-                        int oneBased = foundIdx + 1;
-                        if (!indices.contains(oneBased)) indices.add(oneBased);
-                        continue;
-                    }
-                }
                 cout << "\n[LOI]: \"" << tok << "\" khong phai la so thu tu hop le (1-" << seatCount << ") hoac ma ghe da dat.\n"; // THÔNG BÁO LỖI
                 anyInvalid = true;
                 break;
@@ -203,7 +190,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 continue; 
             }
 
-            // Build list of codes to cancel for confirmation
+            // Hiển thị lại các ghế sẽ hủy để xác nhận
             LinkedList<string> toCancelCodes;
             Node<int>* idxNode = indices.head;
             while (idxNode) {
@@ -221,15 +208,15 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 cNode = cNode->next;
             }
             cout << "\nSo tien hoan lai: " << (int)toCancelCodes.size()*75000 << " VND\n";
-            cout << "Xac nhan (\033[31my\033[0m/\033[32mn\033[0m): ";
+            cout << "Xac nhan (\033[32my\033[0m/\033[31mn\033[0m): ";
             string confirm; getline(cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0])!='y' && tolower((unsigned char)confirm[0])!='n')) { delete[] bookingsPtrArray; continue; }
             if (tolower((unsigned char)confirm[0])=='n') { delete[] bookingsPtrArray; continue; }
 
-            // Sort desc to remove safely
+            // Thực hiện hủy ghế
             indices.sortDesc();
 
-            // Cancel seats: update showtime then remove from booking
+            // Cập nhật trạng thái ghế trong suất chiếu và xóa khỏi bookedSeats
             Node<int>* idxNode2 = indices.head;
             while (idxNode2) {
                 int oneBasedIdx = idxNode2->data;
@@ -247,7 +234,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                 selectedBookingPtr->bookedSeats.removeAt(oneBasedIdx - 1);
                 idxNode2 = idxNode2->next;
             }
-            // Show result
+            // ... (Phần hiển thị kết quả)
             clearScreen();
             cout << "\033[32m===== HUY GHE THANH CONG =====\033[0m\n\n";
             cout << "Phim: \033[1;33m" << selectedBookingPtr->movie->title << "\033[0m\n";
