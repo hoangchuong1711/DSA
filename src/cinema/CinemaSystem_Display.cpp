@@ -73,6 +73,55 @@ using namespace std;
             displayMovieListSortedByRating();
     }
 
+    void printWrapped(const string& text, int width) {
+        istringstream words(text);
+        string word;
+        int lineLen = 0;
+        while (words >> word) {
+            if (lineLen + word.length() + 1 > width) {
+                cout << "\n"; // xuống dòng khi vượt quá width
+                lineLen = 0;
+            }
+            if (lineLen > 0) cout << " "; // cách giữa các từ
+            cout << word;
+            lineLen += word.length() + 1;
+        }
+        cout << "\n";
+    }
+
+    void CinemaSystem::displayMovieDetails(const Movie& movie) {
+        const int width = 70; // độ rộng khung
+
+        // Khung trên
+        cout << "\033[1;34m"; // xanh đậm
+        for (int i = 0; i < width; ++i) cout << "=";
+        cout << "\033[0m\n";
+
+        // Tiêu đề
+        cout << "\033[1;36m"; // xanh dương nhạt
+        cout << "Ten: " << movie.title << "\033[0m\n";
+
+        // Giới hạn tuổi và đánh giá
+        cout << "\033[1;33m"; // vàng nhạt
+        cout << "Gioi han tuoi: " << movie.ageLimit
+            << "    Danh gia: " << movie.rating << "\033[0m\n";
+
+        // Thời lượng và đạo diễn
+        cout << "\033[1;33m";
+        cout << "Thoi luong: " << movie.duration << " phut"
+            << "    Dao dien: " << movie.director << "\033[0m\n";
+
+        // Nội dung chính với gói chữ
+        cout << "\033[0;37m"; // trắng
+        cout << "\nNoi dung chinh:\n";
+        printWrapped(movie.synopsis, width);
+
+        // Khung dưới
+        cout << "\033[1;34m";
+        for (int i = 0; i < width; ++i) cout << "=";
+        cout << "\033[0m\n\n";
+    }
+
     void CinemaSystem::displaySeatMap(const string& movieTitle, Showtime& showtime ) {
         clearScreen();
 

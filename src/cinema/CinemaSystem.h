@@ -41,6 +41,7 @@ private:
     void printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount);
     void clearReservations(Showtime& showtime);
     void displayCustomerInfo(Customer* customer);
+    void displayMovieDetails(const Movie& movie);
 
     // ===== XỬ LÝ NGHIỆP VỤ =====
     void processMovieSelection();

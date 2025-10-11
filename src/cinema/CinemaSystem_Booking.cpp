@@ -66,11 +66,12 @@ using namespace std;
         int validShowtimeIndices[MAX_SHOWTIMES_PER_MOVIE];
         while (true) {
             clearScreen();
+            // Hiển thị chi tiết phim
+            displayMovieDetails(*movie);
             cout << "\033[1;36m";
-            cout << "PHIM: " << movie->title << "\n";
+            
             cout << "===== VUI LONG CHON SUAT CHIEU =====\n\n";
             cout << "\033[0m";
-
             // ==== Tính ngày hôm nay và ngày mai ====
             tm today = localNowTm;
             tm tomorrow = localNowTm;

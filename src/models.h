@@ -32,9 +32,19 @@ struct Showtime {
 // Struct định nghĩa một bộ phim
 struct Movie {
     std::string title;
-    double rating = 0.0; // thang diem 0..10
+    double rating = 0.0;              // thang diem 0..10
     Showtime showtimes[MAX_SHOWTIMES_PER_MOVIE];
-    int showtimeCount = 0; // Số lượng suất chiếu thực tế của phim
+    int showtimeCount = 0;            // Số lượng suất chiếu thực tế của phim
+
+    int duration = 0;                 // thời lượng (phút)
+    std::string genre;                // thể loại
+    int ageLimit = 0;                 // giới hạn tuổi
+    std::string synopsis;             // nội dung chính
+    std::string director;             // đạo diễn
+    Movie(std::string t = "", double r = 0.0, int dur = 0, std::string g = "",
+        int age = 0, std::string syn = "", std::string dir = "")
+        : title(t), rating(r), duration(dur), genre(g),
+        ageLimit(age), synopsis(syn), director(dir) {}
 };
 
 // Struct định nghĩa thông tin một lần đặt vé

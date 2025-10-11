@@ -30,21 +30,30 @@
         }
 
         Movie movies[] = {
-            {"DAO KIEM VUNG DAT QUY", 7.6},
-            {"DORAEMON: NOBITA VA BAN GIAO HUONG", 8.3},
-            {"LAT MAT 7: MOT DIEU UOC", 6.8},
-            {"HANH TINH KHI: VUONG QUOC MOI", 8.0},
-            {"TAROT", 5.9},
-            {"TAM QUOC DIEN NGHIA", 8.7}
+            Movie("INCEPTION", 8.8, 148, "Hanh dong/Khoa hoc", 13,
+                "Dom Cobb la mot ke trom giac mo chuyen nghiep. Anh nhan nhiem vu xuyen qua nhung giac mo de cat xau thong tin va doi mat voi nhung nguy hiem khong lo.", "Christopher Nolan"),
+            
+            Movie("AVATAR: THE WAY OF WATER", 8.2, 192, "Khoa hoc/Phieu luu", 13,
+                "Jake Sully va Neytiri cung nhung con cua ho phai doi mat voi nguy co moi khi ben canh dai duong xanh cua Pandora, tranh danh cho sinh ton va tinh yeu.", "James Cameron"),
+            
+            Movie("THE DARK KNIGHT", 9.0, 152, "Hanh dong/Chieu phap", 13,
+                "Batman doi dau voi Joker, mot ke toi pham tinh nghiem trong voi nhung ke hoach phuc tap de gieo rac ham hai o Gotham.", "Christopher Nolan"),
+            
+            Movie("SPIDER-MAN: NO WAY HOME", 8.1, 148, "Phieu luu/Hanh dong", 13,
+                "Peter Parker phai doi mat voi nhung ke thua nguoi tu cac vung dong van da bi xuyen khong gian, khi bi cong chung biet danh tinh.", "Jon Watts"),
+            
+            Movie("JOJO RABBIT", 7.9, 108, "Chien tranh/Hai huoc", 13,
+                "Mot cau be nguoi Duc thich Hitler phai doi mat voi nhung thuc te cua chien tranh khi phat hien me nuoi mot co gai Do Tai nha.", "Taika Waititi"),
+            
+            Movie("THE LORD OF THE RINGS: THE FELLOWSHIP OF THE RING", 8.8, 178, "Phieu luu/Phim co trang", 13,
+                "Frodo va nhung nguoi ban dong hanh phai tieu diet nhan vat toi ac Sauron va mang nhan nhan vat ring ve Mordor truoc khi bi ke xau so huu.", "Peter Jackson")
         };
 
         int numMovies = sizeof(movies) / sizeof(movies[0]);
         int numShowtimes = sizeof(todayShowtimes) / sizeof(todayShowtimes[0]);
 
         for (int i = 0; i < numMovies; ++i) {
-            Movie m;
-            m.title = movies[i].title;
-            m.rating = movies[i].rating;
+            Movie m = movies[i]; // copy tất cả trường
             m.showtimeCount = numShowtimes * 2; // hôm nay + ngày mai
             // Gán hôm nay
             for (int j = 0; j < numShowtimes; ++j)
