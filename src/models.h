@@ -48,7 +48,6 @@ struct Movie {
 };
 
 // Struct định nghĩa thông tin một lần đặt vé
-// Sửa lại để trỏ đến cả phim và suất chiếu cụ thể
 struct Booking {
     Movie* movie;
     Showtime* showtime; 
