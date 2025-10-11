@@ -39,31 +39,14 @@ void CinemaSystem::cancelSeat(Customer* customer) {
         // Chuyển LinkedList sang mảng CON TRỎ để sắp xếp và hiển thị
         int bookingCount = customer->bookings.size();
         // SỬ DỤNG MẢNG CON TRỎ (Booking**)
-        Booking** bookingsPtrArray = new Booking*[bookingCount]; 
-        Node<Booking>* current = customer->bookings.head;
-        for (int i = 0; i < bookingCount; ++i) {
-            bookingsPtrArray[i] = &current->data; // Lưu CON TRỎ tới Booking gốc
-            current = current->next;
-        }
+        Booking** bookingsPtrArray = customer->bookings.listToPtrArray();
 
         // Sắp xếp theo thời gian suất chiếu (gần nhất trước)
         mergeSortBookingPtrs(bookingsPtrArray, 0, bookingCount - 1);
 
         // Hiển thị danh sách vé với index
-        for (int i = 0; i < bookingCount; ++i) {
-            Booking* booking = bookingsPtrArray[i];
-            cout << " \033[31m" << (i + 1) << ".\033[0m Phim: " <<"\033[1;33m "<< booking->movie->title << "\n";
-            cout << "\033[0m";
-            cout << "    Suat chieu: " << " \033[35m" << formatTime(booking->showtime->time) << "\n";
-            cout << "\033[0m";
-            cout << "    Ghe: ";
-            Node<string>* seatNode = booking->bookedSeats.head;
-            while(seatNode) {
-                cout << "\033[1;32m"<< seatNode->data << "\033[0m" << " ";
-                seatNode = seatNode->next;
-            }
-            cout << "(" << booking->bookedSeats.size() << " ghe)\n\n";
-        }
+        displayBookingList(bookingsPtrArray, bookingCount);
+        
         cout << "\033[31m0.\033[0m Quay lai\n";
         cout << "----------------------------------------\n";
         cout << "Chon ve muon huy (nhap so thu tu): ";
@@ -94,7 +77,6 @@ void CinemaSystem::cancelSeat(Customer* customer) {
         int seatCount = selectedBookingPtr->bookedSeats.size();
 
         // Xử lý hủy toàn bộ vé (1 ghế) hoặc chọn ghế (nhiều ghế)
-        // ... (Logic tương tự như code cũ, nhưng sử dụng 'selectedBookingPtr->' thay cho 'selectedBooking.')
         string movieTitle = selectedBookingPtr->movie->title;
         string showtimeStr = formatTime(selectedBookingPtr->showtime->time);
         string seatCodeUpper = toUpper(selectedBookingPtr->bookedSeats.head->data);
@@ -119,17 +101,8 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             }
 
             // Tìm và xóa booking khỏi danh sách (Dùng con trỏ để so sánh)
-            Node<Booking>* node = customer->bookings.head;
-            int index = 0;
-            while (node) {
-                // So sánh địa chỉ con trỏ để đảm bảo xóa đúng Booking
-                if (&node->data == selectedBookingPtr) {
-                    customer->bookings.removeAt(index);
-                    break;
-                }
-                node = node->next;
-                index++;
-            }
+            int idx = customer->bookings.findIndexByPointer(selectedBookingPtr);
+            if (idx != -1) customer->bookings.removeAt(idx);
             
             // ... (Phần hiển thị kết quả)
             clearScreen();
@@ -182,14 +155,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             // Parse multiple tokens: indices (1-based) or seat codes (e.g., A1)
             stringstream ss(seatChoice);
             LinkedList<int> indices;
-            auto containsIndex = [&](int v) {
-                Node<int>* cur = indices.head;
-                while (cur) {
-                    if (cur->data == v) return true;
-                    cur = cur->next;
-                }
-                return false;
-            };
+
             auto toUpperStr = [](string s){ for(char& c: s) c = (char)toupper((unsigned char)c); return s; };
             string tok;
             bool anyInvalid = false;
@@ -200,7 +166,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                     size_t pos = 0;
                     int asIndex = stoi(tok, &pos);
                     if (pos == tok.size() && asIndex >= 1 && asIndex <= seatCount) {
-                        if (!containsIndex(asIndex)) indices.add(asIndex);
+                        if (!indices.contains(asIndex)) indices.add(asIndex);
                         accepted = true;
                     }
                 } catch (...) {}
@@ -213,7 +179,7 @@ void CinemaSystem::cancelSeat(Customer* customer) {
                     int foundIdx = findSeatIndexInBooking(*selectedBookingPtr, codeUpper);
                     if (foundIdx != -1) {
                         int oneBased = foundIdx + 1;
-                        if (!containsIndex(oneBased)) indices.add(oneBased);
+                        if (!indices.contains(oneBased)) indices.add(oneBased);
                         continue;
                     }
                 }

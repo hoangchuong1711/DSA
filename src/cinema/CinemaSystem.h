@@ -36,15 +36,16 @@ private:
     void displayMovieList();
     void displayMovieListSortedByRating();
     void displaySeatMap(const std::string& movieTitle, Showtime& showtime);
+    void displayBookingList(Booking** arr, int count);
+    void printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount);
     void clearReservations(Showtime& showtime);
+    void displayCustomerInfo(Customer* customer);
 
     // ===== XỬ LÝ NGHIỆP VỤ =====
     void processMovieSelection();
     bool processShowtimeSelection(Movie* movie, Customer* existingCustomer);
-    bool handleBooking(Movie* movie, Showtime* showtime, Customer* existingCustomer);
-    void printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const std::string seatCodes[], int seatCount);
+    bool handleBooking(Movie* movie, Showtime* showtime, Customer* existingCustomer); 
     void processCustomerSearch();
-    void displayCustomerInfo(Customer* customer);
     void processMovieSelectionForExistingCustomer(Customer* customer);
     
     // === HUY GHE ===

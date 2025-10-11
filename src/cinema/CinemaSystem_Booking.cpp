@@ -5,12 +5,12 @@ using namespace std;
         while (true) {
             clearScreen();
             cout << "\033[1;36mCHON PHIM - CINEMA SYSTEM\033[0m\n\n";
-    cout << "-------------------------------------\n";
-    cout << "\033[31m1.\033[0m  Sap xep theo \033[35mTen (A -> Z)\033[0m\n";
-    cout << "\033[31m2.\033[0m  Sap xep theo \033[35mRating (cao -> thap)\033[0m\n";
-    cout << "\033[31m0.\033[0m  Quay lai\n";
-    cout << "-------------------------------------\n";
-    cout << "\033[36mNhap lua chon cua ban: \033[0m";
+            cout << "-------------------------------------\n";
+            cout << "\033[31m1.\033[0m  Sap xep theo \033[35mTen (A -> Z)\033[0m\n";
+            cout << "\033[31m2.\033[0m  Sap xep theo \033[35mRating (cao -> thap)\033[0m\n";
+            cout << "\033[31m0.\033[0m  Quay lai\n";
+            cout << "-------------------------------------\n";
+            cout << "\033[36mNhap lua chon cua ban: \033[0m";
             string sortChoice; getline(cin, sortChoice);
 
             if (sortChoice == "0") return;
@@ -254,50 +254,19 @@ using namespace std;
         }
     }
 
-    void CinemaSystem::printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const string seatCodes[], int seatCount) {
-        clearScreen();
-        cout << "\033[1;32m";
-        cout << "====== HOA DON DAT VE ======\n\n";
-        cout << "\033[0m\n";
-        cout << "  Khach hang: " << customer.name << "\n";
-        cout << "  CCCD:       " << customer.cccd << "\n";
-        cout << "  Phim:       "  << " \033[1;33m"<< movie->title << "\n";
-        cout << "\033[0m";
-        cout << "  Suat chieu: " << " \033[1;35m" << formatTime(showtime->time) << "\n";
-        cout << "\033[0m";
-        cout << "  Ghe da dat: ";
-        cout << "\033[1;32m";
-        for (int i = 0; i < seatCount; ++i) cout << seatCodes[i] << " ";
-        cout << "\033[0m";
-        cout << "\n";
-        cout << "  So luong:   " << seatCount << " ve\n";
-        cout << "  Tong tien:  " << seatCount * 75000 << " VND\n\n";
-        cout << "\033[1;32m";
-        cout << "  CAM ON QUY KHACH!\n\n";
-        cout << "\033[0m";
-        cout << "Nhan Enter de quay lai menu chinh...";
-        cin.ignore();
-    }
 
     void CinemaSystem::processCustomerSearch() {
         while (true) {
             clearScreen();
             
             // Check if customer table is completely empty
-            bool hasAnyCustomers = false;
-            for (int i = 0; i < HashTable::TABLE_SIZE; ++i) {
-                if (customerTable.table[i].listSize > 0) { 
-                    hasAnyCustomers = true;
-                    break;
-                }
-            }
-            
-            if (!hasAnyCustomers) {
+            bool isCustomerTableEmpty  = customerTable.isEmpty();           
+            if (isCustomerTableEmpty ) {
                 cout << "===== TIM KIEM KHACH HANG =====\n\n";
                 cout << "Hien tai chua co khach hang nao dat ve.\n";
                 cout << "Vui long dat ve truoc khi tim kiem thong tin khach hang.\n\n";
-            cout << "Nhan Enter de quay lai menu chinh...";
-            cin.ignore();
+                cout << "Nhan Enter de quay lai menu chinh...";
+                cin.ignore();
                 return;
             }
             
@@ -309,22 +278,7 @@ using namespace std;
 
             const int MAX_NAME_MATCHES = 50;
             Customer* foundCustomers[MAX_NAME_MATCHES];
-            int foundCount = 0;
-            // Duyệt qua tất cả các bucket (O(TABLE_SIZE))
-            for (int i = 0; i < HashTable::TABLE_SIZE; ++i) {
-                // Duyệt qua Linked List trong bucket hiện tại (O(collision_chain_length))
-                Node<HashItem>* currentItemNode = customerTable.table[i].head; 
-                
-                while (currentItemNode != nullptr) {
-                    // currentItemNode->data là một HashItem { string key, Customer* customerData }
-                    if (toLower(currentItemNode->data.customerData->name) == nameQueryNorm) { 
-                        if (foundCount < MAX_NAME_MATCHES) {
-                            foundCustomers[foundCount++] = currentItemNode->data.customerData;
-                        }
-                    }
-                    currentItemNode = currentItemNode->next;
-                }
-            }
+            int foundCount = customerTable.findByName(nameQuery, foundCustomers, MAX_NAME_MATCHES);
 
             if (foundCount == 0) {
                 cout << "Khong tim thay khach hang nao voi ten '" << nameQuery << "'.\n";cin.ignore();
@@ -348,67 +302,6 @@ using namespace std;
         }
     }
     
-    void CinemaSystem::displayCustomerInfo(Customer* customer) {
-        clearScreen();
-        cout << "\033[1;32m";
-        cout << "===== THONG TIN KHACH HANG =====\n\n";
-        cout << "\033[0m";
-        cout << "Ten: " << customer->name << "\n";
-        cout << "CCCD: " << customer->cccd << "\n\n";
-        cout << "--- Cac ve da dat (da sap xep theo suat chieu moi nhat) ---\n";
-
-            if(customer->bookings.isEmpty()) {
-        cout << "Khach hang chua dat ve nao.\n";
-    } else {
-        // Chuyển LinkedList sang mảng CON TRỎ để sắp xếp
-        int bookingCount = customer->bookings.size();
-        Booking** bookingsPtrArray = new Booking*[bookingCount]; // Mảng con trỏ
-        Node<Booking>* current = customer->bookings.head;
-        for (int i = 0; i < bookingCount; ++i) {
-            bookingsPtrArray[i] = &current->data; // Lấy địa chỉ của Booking gốc
-            current = current->next;
-        }
-
-        // GỌI HÀM SẮP XẾP CON TRỎ
-        mergeSortBookingPtrs(bookingsPtrArray, 0, bookingCount - 1);
-
-        // In ra từ mảng con trỏ đã sắp xếp
-        for (int i = 0; i < bookingCount; ++i) {
-            Booking* booking = bookingsPtrArray[i]; // Lấy con trỏ booking
-            cout << " > Phim: " << "\033[1;33m"<< booking->movie->title << "\n";
-            cout << "\033[0m";
-            cout << "   Suat chieu: " << "\033[35m"<<formatTime(booking->showtime->time) << "\n";
-            cout << "\033[0m";
-            cout << "   Ghe: ";
-            Node<string>* seatNode = booking->bookedSeats.head;
-            while(seatNode) {
-                cout << "\033[1;32m";
-                cout << seatNode->data << " ";
-                cout << "\033[0m";
-                seatNode = seatNode->next;
-            }
-            cout << "\n\n";
-        }
-        
-        delete[] bookingsPtrArray; // Giải phóng bộ nhớ mảng con trỏ
-    }
-
-
-        cout << "--------------------------------\n";
-        cout << "\033[31m1.\033[0m Dat them ghe\n";
-        cout << "\033[31m2\033[0m. Huy ghe\n";
-        cout << "\033[31m0\033[0m. Quay lai menu chinh\n";
-        cout << "Lua chon: ";
-        string line;
-        getline(cin, line);
-        if (line == "1") processMovieSelectionForExistingCustomer(customer);
-        else if (line == "2") cancelSeat(customer);
-        else if (line == "0") return;
-        else {
-            cout << "Lua chon khong hop le, vui long nhan Enter nhap lai.";cin.ignore();
-            displayCustomerInfo(customer); 
-        }
-    }
     
     void CinemaSystem::processMovieSelectionForExistingCustomer(Customer* customer) {
         while (true) {

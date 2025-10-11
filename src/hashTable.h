@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <optional>
+#include "utils.h"
 #include "linkedList.h"
 #include "models.h"
 
@@ -19,6 +20,7 @@ struct HashItem {
 struct HashTable {
     static const int TABLE_SIZE = 1009; 
     LinkedList<HashItem> table[TABLE_SIZE];
+    int totalItems = 0;
 
     // Hàm băm đơn giản dựa trên mã ASCII của key (CCCD)
     unsigned int hash(std::string key) {
@@ -34,6 +36,11 @@ struct HashTable {
         unsigned int index = hash(key);
         // Dùng hàm add O(1) mới của LinkedList
         table[index].add(HashItem(key, customer)); 
+        totalItems++;
+    }
+
+    bool isEmpty() const {
+        return totalItems == 0;
     }
 
     // Tìm kiếm khách hàng bằng key (CCCD)
@@ -54,6 +61,34 @@ struct HashTable {
     // Kiểm tra xem một key đã tồn tại chưa
     bool has(std::string key) {
         return get(key).has_value();
+    }
+    //tim kiem theo ten
+    int findByName(const std::string& nameQuery, Customer* foundCustomers[], int maxMatches = 50) const {
+        std::string nameQueryNorm = toLower(nameQuery);
+        int foundCount = 0;
+
+        // Duyệt toàn bộ bảng băm
+        for (int i = 0; i < TABLE_SIZE; ++i) {
+            Node<HashItem>* currentItemNode = table[i].head;
+
+            // Duyệt danh sách trong mỗi bucket
+            while (currentItemNode != nullptr) {
+                // Lấy tên khách hàng trong nút hiện tại
+                std::string currentNameNorm = toLower(currentItemNode->data.customerData->name);
+
+                // So sánh (không phân biệt hoa thường)
+                if (currentNameNorm == nameQueryNorm) {
+                    if (foundCount < maxMatches) {
+                        foundCustomers[foundCount++] = currentItemNode->data.customerData;
+                    } else {
+                        return foundCount; // đủ giới hạn thì dừng luôn
+                    }
+                }
+                currentItemNode = currentItemNode->next;
+            }
+        }
+
+        return foundCount; // trả về số lượng khách hàng tìm được
     }
 };
 

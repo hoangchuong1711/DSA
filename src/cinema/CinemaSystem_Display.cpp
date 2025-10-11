@@ -110,6 +110,104 @@ using namespace std;
         resetTextColor();
     }
 
+    void CinemaSystem::displayBookingList(Booking** arr, int count) {      
+        for (int i = 0; i < count; ++i) {
+            Booking* booking = arr[i];
+            cout << " \033[31m" << (i + 1) << ".\033[0m Phim: " << "\033[1;33m" << booking->movie->title << "\033[0m\n";
+            cout << "    Suat chieu: \033[35m" << formatTime(booking->showtime->time) << "\033[0m\n";
+            cout << "    Ghe: ";
+
+            Node<string>* seatNode = booking->bookedSeats.head;
+            while (seatNode) {
+                cout << "\033[1;32m" << seatNode->data << "\033[0m ";
+                seatNode = seatNode->next;
+            }
+            cout << "(" << booking->bookedSeats.size() << " ghe)\n\n";
+        }
+    }
+
+    void CinemaSystem::printReceipt(const Customer& customer, const Movie* movie, const Showtime* showtime, const string seatCodes[], int seatCount) {
+        clearScreen();
+        cout << "\033[1;32m";
+        cout << "====== HOA DON DAT VE ======\n\n";
+        cout << "\033[0m\n";
+        cout << "  Khach hang: " << customer.name << "\n";
+        cout << "  CCCD:       " << customer.cccd << "\n";
+        cout << "  Phim:       "  << " \033[1;33m"<< movie->title << "\n";
+        cout << "\033[0m";
+        cout << "  Suat chieu: " << " \033[1;35m" << formatTime(showtime->time) << "\n";
+        cout << "\033[0m";
+        cout << "  Ghe da dat: ";
+        cout << "\033[1;32m";
+        for (int i = 0; i < seatCount; ++i) cout << seatCodes[i] << " ";
+        cout << "\033[0m";
+        cout << "\n";
+        cout << "  So luong:   " << seatCount << " ve\n";
+        cout << "  Tong tien:  " << seatCount * 75000 << " VND\n\n";
+        cout << "\033[1;32m";
+        cout << "  CAM ON QUY KHACH!\n\n";
+        cout << "\033[0m";
+        cout << "Nhan Enter de quay lai menu chinh...";
+        cin.ignore();
+    }
+
+    void CinemaSystem::displayCustomerInfo(Customer* customer) {
+        clearScreen();
+        cout << "\033[1;32m";
+        cout << "===== THONG TIN KHACH HANG =====\n\n";
+        cout << "\033[0m";
+        cout << "Ten: " << customer->name << "\n";
+        cout << "CCCD: " << customer->cccd << "\n\n";
+        cout << "--- Cac ve da dat (da sap xep theo suat chieu moi nhat) ---\n";
+
+        if(customer->bookings.isEmpty()) {
+            cout << "Khach hang chua dat ve nao.\n";
+        } else {
+            // Chuyển LinkedList sang mảng CON TRỎ để sắp xếp
+            int bookingCount = customer->bookings.size();
+            Booking** bookingsPtrArray = customer->bookings.listToPtrArray();
+
+            // GỌI HÀM SẮP XẾP CON TRỎ
+            mergeSortBookingPtrs(bookingsPtrArray, 0, bookingCount - 1);
+
+        // In ra từ mảng con trỏ đã sắp xếp
+        for (int i = 0; i < bookingCount; ++i) {
+            Booking* booking = bookingsPtrArray[i]; // Lấy con trỏ booking
+            cout << " > Phim: " << "\033[1;33m"<< booking->movie->title << "\n";
+            cout << "\033[0m";
+            cout << "   Suat chieu: " << "\033[35m"<<formatTime(booking->showtime->time) << "\n";
+            cout << "\033[0m";
+            cout << "   Ghe: ";
+            Node<string>* seatNode = booking->bookedSeats.head;
+            while(seatNode) {
+                cout << "\033[1;32m";
+                cout << seatNode->data << " ";
+                cout << "\033[0m";
+                seatNode = seatNode->next;
+            }
+            cout << "\n\n";
+        }
+        
+        delete[] bookingsPtrArray; // Giải phóng bộ nhớ mảng con trỏ
+    }
+
+
+        cout << "--------------------------------\n";
+        cout << "\033[31m1.\033[0m Dat them ghe\n";
+        cout << "\033[31m2\033[0m. Huy ghe\n";
+        cout << "\033[31m0\033[0m. Quay lai menu chinh\n";
+        cout << "Lua chon: ";
+        string line;
+        getline(cin, line);
+        if (line == "1") processMovieSelectionForExistingCustomer(customer);
+        else if (line == "2") cancelSeat(customer);
+        else if (line == "0") return;
+        else {
+            cout << "Lua chon khong hop le, vui long nhan Enter nhap lai.";cin.ignore();
+            displayCustomerInfo(customer); 
+        }
+    }
+
     // Hàm xóa tất cả đặt tạm của một khách hàng
     void CinemaSystem::clearReservations(Showtime& showtime) {
         for (int i = 0; i < SEAT_ROWS; ++i) {

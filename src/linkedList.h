@@ -55,18 +55,27 @@ struct LinkedList {
 
     void removeAt(int index) {
         if (index < 0 || index >= listSize) return;
-        Node<T>* toDelete = getNode(index);
-        if (!toDelete) return;
+
+        Node<T>* toDelete;
+        if (index < listSize / 2) {
+            toDelete = head;
+            for (int i = 0; i < index; i++)
+                toDelete = toDelete->next;
+        } else {
+            toDelete = tail;
+            for (int i = listSize - 1; i > index; i--)
+                toDelete = toDelete->prev;
+        }
 
         if (toDelete->prev)
             toDelete->prev->next = toDelete->next;
         else
-            head = toDelete->next; // xóa đầu
+            head = toDelete->next;
 
         if (toDelete->next)
             toDelete->next->prev = toDelete->prev;
         else
-            tail = toDelete->prev; // xóa cuối
+            tail = toDelete->prev;
 
         delete toDelete;
         listSize--;
@@ -95,6 +104,30 @@ struct LinkedList {
     void swap(Node<T>* a, Node<T>* b) {
         if (a && b)
             std::swap(a->data, b->data);
+    }
+
+    int findIndexByPointer(T* ptr) const {
+        Node<T>* cur = head;
+        int idx = 0;
+        while (cur) {
+            if (&cur->data == ptr) return idx;
+            cur = cur->next;
+            ++idx;
+        }
+        return -1;
+    }
+
+    T** listToPtrArray() {
+        int n = size();
+        if (n == 0) return nullptr;
+
+        T** arr = new T*[n];
+        Node<T>* cur = head;
+        for (int i = 0; i < n; ++i) {
+            arr[i] = &cur->data;
+            cur = cur->next;
+        }
+        return arr;
     }
 
     void sortDesc() {
