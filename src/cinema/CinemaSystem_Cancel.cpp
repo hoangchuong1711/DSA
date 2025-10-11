@@ -61,7 +61,8 @@ void CinemaSystem::cancelSeat(Customer* customer) {
         try { 
             ticketIndex = stoi(choice); 
         } catch (...) { 
-            cout << "Vui long nhap so hop le.\n"; cin.ignore();
+            cout << "Vui long nhap so hop le, nhan Enter de nhap lai.\n"; 
+            cin.ignore();
             delete[] bookingsPtrArray;
             continue; 
         }
@@ -85,7 +86,9 @@ void CinemaSystem::cancelSeat(Customer* customer) {
             cout << "\nVe nay chi co 1 ghe. Ban co chac muon huy ve nay? (\033[32my\033[0m/\033[31mn\033[0m): ";
             string confirm; getline(cin, confirm);
             if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                cout << "Lua chon khong hop le. Vui long nhap \033[32my\033[0m/\033[31mn\033[0m.\n";cin.ignore();
+                cout << "Lua chon khong hop le. Vui long nhap \033[32my\033[0m hoac \033[31mn\033[0m.\n";
+                cout << "Nhan Enter de nhap lai...";
+                cin.ignore();
                 delete[] bookingsPtrArray;
                 continue;
             }

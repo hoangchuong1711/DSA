@@ -73,7 +73,6 @@ using namespace std;
             char todayStr[20], tomorrowStr[20];
             strftime(todayStr, sizeof(todayStr), "%d/%m/%Y", &today);
             strftime(tomorrowStr, sizeof(tomorrowStr), "%d/%m/%Y", &tomorrow);
-            cout << "\t";
             if (selectedDayOffset == 0)
                 cout << "\033[1;33mHom nay\033[0m";
             else
@@ -85,7 +84,7 @@ using namespace std;
             else
                 cout << "Ngay mai";
 
-            cout << "\n\t" << todayStr << "\t\t" << tomorrowStr << "\n\n";
+            cout << "\n" << todayStr << "\t\t" << tomorrowStr << "\n\n";
             int validCount = 0;
 
             // Tính ngày bắt đầu và kết thúc
@@ -146,160 +145,189 @@ using namespace std;
         }
     }
     
-    bool CinemaSystem::handleBooking(Movie* movie, Showtime* showtime, Customer* existingCustomer) {
-        const int MAX_SEATS_PER_BOOKING = 20;
-        Customer* customer = existingCustomer;
-        string customerCCCD = "";
-        
-        while (true) {
-            displaySeatMap(movie->title, *showtime);
-            cout << "\nNhap cac ghe can dat, cach nhau boi dau cach (vi du: A1 B2 C3).\n";
-            cout << "Nhap 0 de quay lai.\n> ";
-            string seatInput; getline(cin, seatInput);
-            if (seatInput == "0") {
-                // Xóa tất cả đặt tạm trước khi quay lại
-                clearReservations(*showtime);
-                return false;
-            }
+        bool CinemaSystem::handleBooking(Movie* movie, Showtime* showtime, Customer* existingCustomer) {
+            const int MAX_SEATS_PER_BOOKING = 20;
+            Customer* customer = existingCustomer;
+            string customerCCCD = "";
             
-            string seatCodes[MAX_SEATS_PER_BOOKING];
-            int seatCount = 0;
-            stringstream ss(toUpper(seatInput));
-            
-            // Dùng mảng đã parse để kiểm tra trùng lặp
-            auto isDuplicate = [&](const string& checkCode, int currentCount) -> bool {
-                for(int k = 0; k < currentCount; ++k) {
-                    if (seatCodes[k] == checkCode) return true;
+            while (true) {
+                displaySeatMap(movie->title, *showtime);
+                cout << "\nNhap cac ghe can dat, cach nhau boi dau cach (vi du: A1 B2 C3).\n";
+                cout << "Nhap 0 de quay lai.\n> ";
+                string seatInput; getline(cin, seatInput);
+                if (seatInput == "0") {
+                    // Xóa tất cả đặt tạm trước khi quay lại
+                    clearReservations(*showtime);
+                    return false;
                 }
-                return false;
-            };
-            string token;
-            while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) {
-                if (isDuplicate(token, seatCount)) { // Kiểm tra trùng lặp trong mảng đã parse
-                    cout << "Ma ghe nhap bi trung ('" << token << "'). Vui long nhap lai toan bo danh sach ghe.\n"; 
+                
+                string seatCodes[MAX_SEATS_PER_BOOKING];
+                int seatCount = 0;
+                stringstream ss(toUpper(seatInput));
+
+                // Dùng mảng đã parse để kiểm tra trùng lặp
+                auto isDuplicate = [&](const string& checkCode, int currentCount) -> bool {
+                    for(int k = 0; k < currentCount; ++k) {
+                        if (seatCodes[k] == checkCode) return true;
+                    }
+                    return false;
+                };
+
+                auto isStrictSeatCode = [](const std::string& s) -> bool {
+                if (s.size() < 2) return false;
+                if (!std::isalpha((unsigned char)s[0])) return false;
+                if (!std::isdigit((unsigned char)s[1])) return false;
+                for (size_t i = 2; i < s.size(); ++i)
+                if (!std::isdigit((unsigned char)s[i])) return false; // cấm mọi ký tự thừa
+                    return true;
+                };
+                string token;
+                bool parseError = false;
+                while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) {
+                token = toUpper(token); // đảm bảo A,B,C...
+                 if (!isStrictSeatCode(token)) {
+                cout << "Ma ghe '" << token << "' khong hop le. Vi du hop le: A1 B2 C3.\n";
+                cout << "Nhan Enter de nhap lai...";
+                cin.ignore();
+                parseError = true;
+                break;
+                }
+                if (isDuplicate(token, seatCount)) {
+                    cout << "Ma ghe bi trung ('" << token << "'). Vui long nhap lai toan bo danh sach ghe.\n";
+                    cout << "Nhan Enter de nhap lai...";
                     cin.ignore();
-                    seatCount = 0; 
-                    break; 
+                    parseError = true;
+                    break;
                 }
                 seatCodes[seatCount++] = token;
-            }
-            if (seatCount == 0) continue;
-
-            int validSeatRows[MAX_SEATS_PER_BOOKING], validSeatCols[MAX_SEATS_PER_BOOKING];
-            int validSeatCount = 0; 
-            bool allSeatsValid = true;
-            // Không cần validatedSeen nữa vì đã kiểm tra trùng lặp trong vòng lặp parse
-
-            for (int i = 0; i < seatCount; ++i) {
-                const string& code = seatCodes[i];
-                
-                if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
-                    cout << "Ma ghe '" << code << "' khong hop le.\n";                
-                    allSeatsValid = false; 
-                    break;
                 }
-                
-                int row = code[0] - 'A', col = stoi(code.substr(1)) - 1;
-                if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
-                    cout << "Ma ghe '" << code << "' khong ton tai.\n"; 
-                    allSeatsValid = false; 
-                    break;
-                }
-                
-                Seat& seat = showtime->seats[row][col];
-                if (seat.state == BOOKED) {
-                    cout << "Ghe '" << code << "' da co nguoi dat. Vui long nhap lai danh sach ghe.\n"; 
-                    allSeatsValid = false; 
-                    break;
-                }
-                if (seat.state == RESERVED && seat.reservedByCCCD != customerCCCD) {
-                    cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; 
-                    allSeatsValid = false; 
-                    break;
-                }
-                
-                validSeatRows[validSeatCount] = row;
-                validSeatCols[validSeatCount] = col;
-                validSeatCount++;
-            }
-
-            if (!allSeatsValid) { 
-                cout << "Vui long nhap lai danh sach ghe.\n"; cin.ignore();
+                if (parseError || seatCount == 0) { 
+                // nếu lỗi hoặc không có ghế nào, yêu cầu nhập lại
                 continue; 
-            }
-
-            // Xóa tất cả đặt tạm cũ của khách hàng này
-            clearReservations(*showtime);
-            
-            // Đặt tạm các ghế mới
-            for (int i = 0; i < validSeatCount; ++i) {
-                Seat& seat = showtime->seats[validSeatRows[i]][validSeatCols[i]];
-                seat.state = RESERVED;
-                
-            }
-            
-            // Hiển thị lại sơ đồ ghế với đặt tạm
-            displaySeatMap(movie->title, *showtime);
-            
-            // Xác nhận thanh toán
-            int totalCost = validSeatCount * 75000;
-            cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (\033[32my\033[0m/\033[31mn\033[0m): ";
-            string confirm; getline(cin, confirm);
-            if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
-                cout << "Lua chon khong hop le. Vui long nhap \033[32my\033[0m/\033[31mn\033[0m.\n"; 
-                cin.ignore();
-                // Xóa đặt tạm nếu không xác nhận
-                clearReservations(*showtime);
-                continue;
-            }
-            
-            if (tolower((unsigned char)confirm[0]) == 'n') {
-                cout << "Da huy thanh toan. Cac ghe da dat tam se duoc giai phong.\n";cin.ignore();
-                // Xóa đặt tạm
-                clearReservations(*showtime);
-                continue; // quay lai nhap ghe
-            }
-
-            // Xác nhận thanh toán thành công - chuyển từ RESERVED sang BOOKED
-            Booking newBooking;
-            newBooking.movie = movie; 
-            newBooking.showtime = showtime;
-            
-            // Lấy thông tin khách hàng
-            if (!customer) {
-                string name, cccd;
-                cout << "Vui long nhap ten: ";
-                name = toLower(promptValidatedName());
-                cout << "Vui long nhap CCCD: ";
-                cccd = promptValidatedCCCD();
-                auto foundCustomer = customerTable.get(cccd);
-                if (foundCustomer.has_value()) {
-                    if ((*foundCustomer)->name != name) {
-                        cout << "Loi: CCCD nay da duoc dang ky voi ten khac!\n"; 
-                        cin.ignore();
-                        return false;
-                    }
-                    customer = *foundCustomer;
-                } else {
-                    customer = new Customer{name, cccd};
-                    customerTable.add(cccd, customer);
                 }
-            }
-            customerCCCD = customer->cccd;
 
-            for (int i = 0; i < validSeatCount; ++i) {
-                Seat& seat = showtime->seats[validSeatRows[i]][validSeatCols[i]];
-                seat.state = BOOKED;
-                seat.bookedByCCCD = customerCCCD;
-                seat.reservedByCCCD.clear(); // Xóa thông tin đặt tạm
-                newBooking.bookedSeats.add(seatCodes[i]);
+                int validSeatRows[MAX_SEATS_PER_BOOKING], validSeatCols[MAX_SEATS_PER_BOOKING];
+                int validSeatCount = 0; 
+                bool allSeatsValid = true;
+                // Không cần validatedSeen nữa vì đã kiểm tra trùng lặp trong vòng lặp parse
+
+                for (int i = 0; i < seatCount; ++i) {
+                    const string& code = seatCodes[i];
+                    if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
+                        cout << "Ma ghe '" << code << "' khong hop le.\n";    
+                        cout << "Nhan Enter de nhap lai...";
+                        cin.ignore();            
+                        allSeatsValid = false; 
+                        break;
+                    }
+                    
+                    int row = code[0] - 'A', col = stoi(code.substr(1)) - 1;
+                    if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
+                        cout << "Ma ghe '" << code << "' khong ton tai.\n"; 
+                        cout << "Nhan Enter de nhap lai...";
+                        cin.ignore();
+                        allSeatsValid = false; 
+                        break;
+                    }
+                    
+                    Seat& seat = showtime->seats[row][col];
+                    if (seat.state == BOOKED) {
+                        cout << "Ghe '" << code << "' da co nguoi dat. Vui long nhap lai danh sach ghe.\n"; 
+                        allSeatsValid = false; 
+                        break;
+                    }
+                    if (seat.state == RESERVED && seat.reservedByCCCD != customerCCCD) {
+                        cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; 
+                        cout << "Nhan Enter de nhap lai...";
+                        cin.ignore();
+                        allSeatsValid = false; 
+                        break;
+                    }
+                    
+                    validSeatRows[validSeatCount] = row;
+                    validSeatCols[validSeatCount] = col;
+                    validSeatCount++;
+                }
+
+                if (!allSeatsValid) { 
+                    cout << "Nhan Enter de nhap lai...";
+                    cin.ignore();
+                    continue; 
+                }
+
+                // Xóa tất cả đặt tạm cũ của khách hàng này
+                clearReservations(*showtime);
+                
+                // Đặt tạm các ghế mới
+                for (int i = 0; i < validSeatCount; ++i) {
+                    Seat& seat = showtime->seats[validSeatRows[i]][validSeatCols[i]];
+                    seat.state = RESERVED;
+                    
+                }
+                
+                // Hiển thị lại sơ đồ ghế với đặt tạm
+                displaySeatMap(movie->title, *showtime);
+                
+                // Xác nhận thanh toán
+                int totalCost = validSeatCount * 75000;
+                cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (\033[32my\033[0m/\033[31mn\033[0m): ";
+                string confirm; getline(cin, confirm);
+                if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
+                    cout << "Lua chon khong hop le. Vui long nhap \033[32my\033[0m hoac \033[31mn\033[0m.\n"; 
+                    cout << "Nhan Enter de nhap lai...";
+                    cin.ignore();
+                    // Xóa đặt tạm nếu không xác nhận
+                    clearReservations(*showtime);
+                    continue;
+                }
+                
+                if (tolower((unsigned char)confirm[0]) == 'n') {
+                    cout << "Da huy thanh toan. Cac ghe da dat tam se duoc giai phong.\n";cin.ignore();
+                    // Xóa đặt tạm
+                    clearReservations(*showtime);
+                    continue; // quay lai nhap ghe
+                }
+
+                // Xác nhận thanh toán thành công - chuyển từ RESERVED sang BOOKED
+                Booking newBooking;
+                newBooking.movie = movie; 
+                newBooking.showtime = showtime;
+                
+                // Lấy thông tin khách hàng
+                if (!customer) {
+                    string name, cccd;
+                    cout << "Vui long nhap ten: ";
+                    name = toLower(promptValidatedName());
+                    cout << "Vui long nhap CCCD: ";
+                    cccd = promptValidatedCCCD();
+                    auto foundCustomer = customerTable.get(cccd);
+                    if (foundCustomer.has_value()) {
+                        if ((*foundCustomer)->name != name) {
+                            cout << "Loi: CCCD nay da duoc dang ky voi ten khac!\n"; 
+                            cin.ignore();
+                            return false;
+                        }
+                        customer = *foundCustomer;
+                    } else {
+                        customer = new Customer{name, cccd};
+                        customerTable.add(cccd, customer);
+                    }
+                }
+                customerCCCD = customer->cccd;
+
+                for (int i = 0; i < validSeatCount; ++i) {
+                    Seat& seat = showtime->seats[validSeatRows[i]][validSeatCols[i]];
+                    seat.state = BOOKED;
+                    seat.bookedByCCCD = customerCCCD;
+                    seat.reservedByCCCD.clear(); // Xóa thông tin đặt tạm
+                    newBooking.bookedSeats.add(seatCodes[i]);
+                }
+                
+                customer->bookings.add(newBooking);
+                printReceipt(*customer, movie, showtime, seatCodes, seatCount);
+                return true;
             }
-            
-            customer->bookings.add(newBooking);
-            printReceipt(*customer, movie, showtime, seatCodes, seatCount);
-            return true;
         }
-    }
 
 
     void CinemaSystem::processCustomerSearch() {
@@ -320,7 +348,8 @@ using namespace std;
             cout << "Nhap ten khach hang (0 de quay lai): ";
             string nameQuery; getline(cin, nameQuery);
             if (nameQuery == "0") return;
-            if (!isValidName(nameQuery)) { cout << "Ten khong hop le, vui long nhap lai.\n";cin.ignore(); continue; }
+            if (!isValidName(nameQuery)) { cout << "Ten khong hop le, vui long nhan Enter nhap lai.\n";
+            cin.ignore(); continue; }
             string nameQueryNorm = toLower(trim(nameQuery));
 
             const int MAX_NAME_MATCHES = 50;

@@ -20,7 +20,7 @@ void CinemaSystem::run() {
         else if(choice=="2"){
             processCustomerSearch(); 
         }
-        else if(choice=="0"){
+        else if(choice=="3"){
             running = false; break;
         }
         else if(choice.empty()){
