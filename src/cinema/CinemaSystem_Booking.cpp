@@ -363,7 +363,7 @@ using namespace std;
                 displayCustomerInfo(foundCustomers[0]);
                 return;
             } else {
-                cout << "Tim thay nhieu khach hang co ten trung nhau. Vui long nhap CCCD de xac dinh:\n";cin.ignore();
+                cout << "Tim thay nhieu khach hang co ten trung nhau. Vui long nhap CCCD de xac dinh:\n";
                 for (int i = 0; i < foundCount; ++i)
                     cout << " - Ten: " << foundCustomers[i]->name << endl;
                 cout << "Nhap CCCD (12 chu so, 0 de quay lai): ";
