@@ -27,7 +27,7 @@ using namespace std;
                 string line; getline(cin, line);
                 if (line == "0") return; // quay lại menu chính
                 bool isNumber = !line.empty() && all_of(line.begin(), line.end(), ::isdigit);
-                if(!isNumber || stoi(line) < 0 || stoi(line) > 5) { 
+                if(!isNumber || stoi(line) < 0 || stoi(line) > movieList.size()) { 
                     cout << "Thong tin khong hop le, vui long nhan Enter de nhap lai.";
                     cin.ignore(); 
                     clearCurrentLine();
@@ -104,7 +104,6 @@ using namespace std;
                 if (st >= targetStart && st < targetEnd) {
                     if (selectedDayOffset == 0 && st <= now)
                         continue; // bỏ qua suất chiếu đã qua nếu là hôm nay
-
                     cout << " " << "\033[31m" << validCount + 1 << ". \033[0m"
                         << formatTime(st) << "\n";
                     validShowtimeIndices[validCount] = i;
@@ -174,32 +173,32 @@ using namespace std;
                 };
 
                 auto isStrictSeatCode = [](const std::string& s) -> bool {
-                if (s.size() < 2) return false;
-                if (!std::isalpha((unsigned char)s[0])) return false;
-                if (!std::isdigit((unsigned char)s[1])) return false;
-                for (size_t i = 2; i < s.size(); ++i)
-                if (!std::isdigit((unsigned char)s[i])) return false; // cấm mọi ký tự thừa
-                    return true;
+                    if (s.size() < 2) return false;
+                    if (!std::isalpha((unsigned char)s[0])) return false;
+                    if (!std::isdigit((unsigned char)s[1])) return false;
+                    for (size_t i = 2; i < s.size(); ++i)
+                    if (!std::isdigit((unsigned char)s[i])) return false; // cấm mọi ký tự thừa
+                        return true;
                 };
                 string token;
                 bool parseError = false;
                 while (ss >> token && seatCount < MAX_SEATS_PER_BOOKING) {
-                token = toUpper(token); // đảm bảo A,B,C...
-                 if (!isStrictSeatCode(token)) {
-                cout << "Ma ghe '" << token << "' khong hop le. Vi du hop le: A1 B2 C3.\n";
-                cout << "Nhan Enter de nhap lai...";
-                cin.ignore();
-                parseError = true;
-                break;
-                }
-                if (isDuplicate(token, seatCount)) {
-                    cout << "Ma ghe bi trung ('" << token << "'). Vui long nhap lai toan bo danh sach ghe.\n";
-                    cout << "Nhan Enter de nhap lai...";
-                    cin.ignore();
-                    parseError = true;
-                    break;
-                }
-                seatCodes[seatCount++] = token;
+                    token = toUpper(token); // đảm bảo A,B,C...
+                    if (!isStrictSeatCode(token)) {
+                        cout << "Ma ghe '" << token << "' khong hop le. Vi du hop le: A1 B2 C3.\n";
+                        cout << "Nhan Enter de nhap lai...";
+                        cin.ignore();
+                        parseError = true;
+                        break;
+                    }
+                    if (isDuplicate(token, seatCount)) {
+                        cout << "Ma ghe bi trung ('" << token << "'). Vui long nhap lai toan bo danh sach ghe.\n";
+                        cout << "Nhan Enter de nhap lai...";
+                        cin.ignore();
+                        parseError = true;
+                        break;
+                    }
+                    seatCodes[seatCount++] = token;
                 }
                 if (parseError || seatCount == 0) { 
                 // nếu lỗi hoặc không có ghế nào, yêu cầu nhập lại
@@ -209,18 +208,9 @@ using namespace std;
                 int validSeatRows[MAX_SEATS_PER_BOOKING], validSeatCols[MAX_SEATS_PER_BOOKING];
                 int validSeatCount = 0; 
                 bool allSeatsValid = true;
-                // Không cần validatedSeen nữa vì đã kiểm tra trùng lặp trong vòng lặp parse
 
                 for (int i = 0; i < seatCount; ++i) {
-                    const string& code = seatCodes[i];
-                    if (code.length() < 2 || !isalpha(code[0]) || !isdigit(code[1])) {
-                        cout << "Ma ghe '" << code << "' khong hop le.\n";    
-                        cout << "Nhan Enter de nhap lai...";
-                        cin.ignore();            
-                        allSeatsValid = false; 
-                        break;
-                    }
-                    
+                    const string& code = seatCodes[i];        
                     int row = code[0] - 'A', col = stoi(code.substr(1)) - 1;
                     if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
                         cout << "Ma ghe '" << code << "' khong ton tai.\n"; 
@@ -270,7 +260,7 @@ using namespace std;
                 
                 // Xác nhận thanh toán
                 int totalCost = validSeatCount * 75000;
-                cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (\033[32my\033[0m/\033[31mn\033[0m): ";
+                cout << "\nXac nhan thanh toan " << totalCost << " VND cho " << validSeatCount << " ve? (\033[32m y \033[0m/\033[31m n \033[0m): ";
                 string confirm; getline(cin, confirm);
                 if (confirm.empty() || (tolower((unsigned char)confirm[0]) != 'y' && tolower((unsigned char)confirm[0]) != 'n')) {
                     cout << "Lua chon khong hop le. Vui long nhap \033[32my\033[0m hoac \033[31mn\033[0m.\n"; 

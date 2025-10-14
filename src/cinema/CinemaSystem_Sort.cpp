@@ -34,25 +34,7 @@ using namespace std;
                 std::swap(i->data, maxNode->data);
         }
     }
-    void CinemaSystem::quickSortMovieByRaing() {
-        clearScreen();
-        std::cout << "\033[1;36m";
-        std::cout << "===== DANH SACH PHIM (Rating giam dan) =====\n\n";
-        std::cout << "\033[0m";
 
-        LinkedList<Movie> sortedList = movieList;
-        sortMoviesByRatingDesc(); // hoặc: gọi riêng cho sortedList nếu tách ra
-
-        int index = 1;
-        Node<Movie>* current = sortedList.head;
-        while (current) {
-            std::cout << " " << "\033[31m" << index++ << ". \033[0m"
-                    << current->data.title << " (" << current->data.rating << ")\n";
-            current = current->next;
-        }
-
-        std::cout << "\n\033[36m0. Quay lai\033[0m\n";
-    }
     // Thêm hàm so sánh cho các con trỏ Booking
     bool CinemaSystem::compareBookingPtrs(const Booking* a, const Booking* b) {
     // Sắp xếp theo thời gian suất chiếu tăng dần (gần nhất trước)

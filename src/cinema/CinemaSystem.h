@@ -24,7 +24,6 @@ private:
     // HÀM SẮP XẾP
     void sortMoviesByTitle();             // Sắp xếp tên (A-Z)
     void sortMoviesByRatingDesc();
-    void quickSortMovieByRaing();        // Sắp xếp rating giảm dần
 
     // HÀM MERGE SORT
     bool compareBookingPtrs(const Booking* a, const Booking* b);

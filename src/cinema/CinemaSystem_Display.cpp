@@ -22,7 +22,7 @@ using namespace std;
         std::cout << "===== DANH SACH PHIM =====\n\n";
         std::cout << "\033[0m";
 
-        sortMoviesByTitle(); // nếu hàm này đã hỗ trợ LinkedList, giữ lại
+        sortMoviesByTitle(); 
 
         int index = 1;
         Node<Movie>* current = movieList.head;
@@ -42,22 +42,12 @@ using namespace std;
         std::cout << "\033[0m";
 
         LinkedList<Movie> sortedList = movieList;
-
-        Node<Movie>* i = sortedList.head;
-        while (i) {
-            Node<Movie>* j = i->next;
-            while (j) {
-                if (i->data.rating < j->data.rating)
-                    std::swap(i->data, j->data);
-                j = j->next;
-            }
-            i = i->next;
-        }
+        sortMoviesByRatingDesc(); 
 
         int index = 1;
         Node<Movie>* current = sortedList.head;
         while (current) {
-            std::cout << " " << "\033[31m" << index++ << ". " << "\033[0m"
+            std::cout << " " << "\033[31m" << index++ << ". \033[0m"
                     << current->data.title << " (" << current->data.rating << ")\n";
             current = current->next;
         }
