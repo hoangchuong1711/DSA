@@ -20,10 +20,9 @@ using namespace std;
         }
     }
 
-    //THUẬT TOÁN SẮP XẾP 3: QUICK SORT (sắp xếp phim theo rating giảm dần)
+    //THUẬT TOÁN SẮP XẾP 3: SELECTION SORT (sắp xếp phim theo rating giảm dần)
     void CinemaSystem::sortMoviesByRatingDesc() {
         if (!movieList.head || !movieList.head->next) return;
-
         for (Node<Movie>* i = movieList.head; i; i = i->next) {
             Node<Movie>* maxNode = i;
             for (Node<Movie>* j = i->next; j; j = j->next) {

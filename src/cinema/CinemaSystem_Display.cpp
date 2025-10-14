@@ -41,11 +41,10 @@ using namespace std;
         std::cout << "===== DANH SACH PHIM (Rating giam dan) =====\n\n";
         std::cout << "\033[0m";
 
-        LinkedList<Movie> sortedList = movieList;
         sortMoviesByRatingDesc(); 
 
         int index = 1;
-        Node<Movie>* current = sortedList.head;
+        Node<Movie>* current = movieList.head;
         while (current) {
             std::cout << " " << "\033[31m" << index++ << ". \033[0m"
                     << current->data.title << " (" << current->data.rating << ")\n";

@@ -214,8 +214,6 @@ using namespace std;
                     int row = code[0] - 'A', col = stoi(code.substr(1)) - 1;
                     if (row < 0 || row >= SEAT_ROWS || col < 0 || col >= SEAT_COLS) {
                         cout << "Ma ghe '" << code << "' khong ton tai.\n"; 
-                        cout << "Nhan Enter de nhap lai...";
-                        cin.ignore();
                         allSeatsValid = false; 
                         break;
                     }
@@ -228,8 +226,6 @@ using namespace std;
                     }
                     if (seat.state == RESERVED && seat.reservedByCCCD != customerCCCD) {
                         cout << "Ghe '" << code << "' da co nguoi khac dat tam. Vui long nhap lai danh sach ghe.\n"; 
-                        cout << "Nhan Enter de nhap lai...";
-                        cin.ignore();
                         allSeatsValid = false; 
                         break;
                     }
